@@ -82,7 +82,7 @@ else
     error('Unknown level analysis.');
 end
 
-system('bids-validator ' OpenfMRI.dir)
+system(['bids-validator ' OpenfMRI.dir])
 %==========================================================================
 %-Parse BIDS directory and validate list of participants
 %==========================================================================
