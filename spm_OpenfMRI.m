@@ -24,7 +24,7 @@ OpenfMRI = struct(...
 if numel(inputs) < 1
     error('A BIDS directory has to be specified.');
 elseif numel(inputs) < 2
-    error('An output directory has to be specified.');    
+    error('An output directory has to be specified.');
 elseif numel(inputs) < 3
     error('Missing argument participant/group.');
 end
@@ -82,6 +82,7 @@ else
     error('Unknown level analysis.');
 end
 
+system(['bids-validator ' OpenfMRI.dir])
 %==========================================================================
 %-Parse BIDS directory and validate list of participants
 %==========================================================================
@@ -127,7 +128,7 @@ if ~isempty(strmatch('participant',OpenfMRI.level)) && ~isempty(OpenfMRI.partici
             error('Output temporary directory could not be created.');
         end
         %atExit = onCleanup(@() rmdir(OpenfMRI.tmpdir,'s'));
-        
+
         %-Copy participants' data
         %------------------------------------------------------------------
         for s=1:numel(OpenfMRI.participants)
@@ -140,7 +141,7 @@ if ~isempty(strmatch('participant',OpenfMRI.level)) && ~isempty(OpenfMRI.partici
             end
         end
     end
-    
+
     %-Uncompress gzipped NIfTI files
     %----------------------------------------------------------------------
     for s=1:numel(OpenfMRI.participants)
@@ -154,7 +155,7 @@ if ~isempty(strmatch('participant',OpenfMRI.level)) && ~isempty(OpenfMRI.partici
             end
         end
     end
-    
+
     %-Gather from BIDS structure all relevant information for analysis
     %----------------------------------------------------------------------
     % structural and functional images for each subject/visit/run/task
@@ -171,7 +172,7 @@ end
 %==========================================================================
 
 if ~isempty(strmatch('participant',OpenfMRI.level))
-    
+
     %-fMRI Preprocessing
     %======================================================================
     % ask for: slice timing correction (before or after realign)
@@ -184,7 +185,7 @@ if ~isempty(strmatch('participant',OpenfMRI.level))
     vox_anat = [1 1 1];
     vox_func = [3 3 3];
     FWHM = [12 12 12];
-    
+
     for s=1:numel(OpenfMRI.participants)
         clear matlabbatch f a
 
@@ -227,21 +228,21 @@ if ~isempty(strmatch('participant',OpenfMRI.level))
 
         spm_jobman('run',matlabbatch);
     end
-    
+
     % make sure relevant files are stored in OpenfMRI.outdir
     % -> normalised structural, smoothed normalised functional, movement pars
-    
+
     %-First Level fMRI
     %======================================================================
     fprintf('Nothing to do at fMRI first level yet.\n');
     for s=1:numel(OpenfMRI.participants)
-        
+
     end
-    
+
     % make sure relevant files are stored in OpenfMRI.outdir
     % -> the entire folder containing SPM.mat, also NIDM export
 end
-    
+
 %==========================================================================
 %-Analysis level: group
 %==========================================================================

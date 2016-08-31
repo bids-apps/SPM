@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM bids/base_validator
 
 MAINTAINER Guillaume Flandin <g.flandin@ucl.ac.uk>
 
@@ -25,7 +25,7 @@ RUN cd /opt && \
     wget http://www.fil.ion.ucl.ac.uk/spm/download/restricted/bids/spm12_latest_Linux_R2016a.zip && \
     unzip -q spm12_latest_Linux_R2016a.zip && \
     rm -f spm12_latest_Linux_R2016a.zip && \
-    /opt/spm12/spm12 quit 
+    /opt/spm12/spm12 quit
 
 # HPC folders:
 RUN mkdir /oasis && \
