@@ -31,4 +31,6 @@ RUN cd /opt && \
 RUN mkdir -p /code
 COPY spm_OpenfMRI.m /code/spm_OpenfMRI.m
 
+COPY version /version
+
 ENTRYPOINT ["/opt/spm12/spm12","script","/code/spm_OpenfMRI.m"]
