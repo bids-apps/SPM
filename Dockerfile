@@ -27,12 +27,6 @@ RUN cd /opt && \
     rm -f spm12_latest_Linux_R2016a.zip && \
     /opt/spm12/spm12 quit
 
-# HPC folders:
-RUN mkdir /oasis && \
-    mkdir /projects && \
-    mkdir /scratch && \
-    mkdir /local-scratch
-
 # Install OpenfMRI entry point
 RUN mkdir -p /code
 COPY spm_OpenfMRI.m /code/spm_OpenfMRI.m
