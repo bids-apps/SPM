@@ -2,35 +2,37 @@ FROM bids/base_validator
 
 MAINTAINER Guillaume Flandin <g.flandin@ucl.ac.uk>
 
-# Install MATLAB MCR R2016a
+# Update system
 RUN apt-get -qq update && apt-get -qq install -y \
     unzip \
     xorg \
     wget && \
-    mkdir /mcr-install && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Install MATLAB MCR
+ENV MATLAB_VERSION R2016b
+RUN mkdir /opt/mcr_install && \
     mkdir /opt/mcr && \
-    cd /mcr-install && \
-    wget http://www.mathworks.com/supportfiles/downloads/R2016a/deployment_files/R2016a/installers/glnxa64/MCR_R2016a_glnxa64_installer.zip && \
-    cd /mcr-install && \
-    unzip -q MCR_R2016a_glnxa64_installer.zip && \
-    ./install -destinationFolder /opt/mcr -agreeToLicense yes -mode silent && \
-    cd / && \
-    rm -rf mcr-install
+    wget -P /opt/mcr_install http://www.mathworks.com/supportfiles/downloads/${MATLAB_VERSION}/deployment_files/${MATLAB_VERSION}/installers/glnxa64/MCR_${MATLAB_VERSION}_glnxa64_installer.zip && \
+    unzip -q /opt/mcr_install/MCR_${MATLAB_VERSION}_glnxa64_installer.zip -d /opt/mcr_install && \
+    /opt/mcr_install/install -destinationFolder /opt/mcr -agreeToLicense yes -mode silent && \
+    rm -rf /opt/mcr_install
 
 # Configure environment
-ENV LD_LIBRARY_PATH /opt/mcr/v901/runtime/glnxa64:/opt/mcr/v901/bin/glnxa64:/opt/mcr/v901/sys/os/glnxa64:/opt/mcr/v901/sys/opengl/lib/glnxa64
+ENV MCR_VERSION v91
+ENV LD_LIBRARY_PATH /opt/mcr/${MCR_VERSION}/runtime/glnxa64:/opt/mcr/${MCR_VERSION}/bin/glnxa64:/opt/mcr/${MCR_VERSION}/sys/os/glnxa64:/opt/mcr/${MCR_VERSION}/sys/opengl/lib/glnxa64
 
-# Install SPM12 Standalone
-RUN cd /opt && \
-    wget http://www.fil.ion.ucl.ac.uk/spm/download/restricted/bids/spm12_latest_Linux_R2016a.zip && \
-    unzip -q spm12_latest_Linux_R2016a.zip && \
-    rm -f spm12_latest_Linux_R2016a.zip && \
-    /opt/spm12/spm12 quit
+# Install SPM Standalone
+ENV SPM_VERSION 12
+ENV SPM_REVISION r6876
+RUN wget -P /opt http://www.fil.ion.ucl.ac.uk/spm/download/restricted/bids/spm${SPM_VERSION}_${SPM_REVISION}_Linux_${MATLAB_VERSION}.zip && \
+    unzip -q /opt/spm${SPM_VERSION}_${SPM_REVISION}_Linux_${MATLAB_VERSION}.zip -d /opt && \
+    rm -f /opt/spm${SPM_VERSION}_${SPM_REVISION}_Linux_${MATLAB_VERSION}.zip && \
+    /opt/spm${SPM_VERSION}/spm${SPM_VERSION} function exit
 
-# Install OpenfMRI entry point
-RUN mkdir -p /code
-COPY spm_OpenfMRI.m /code/spm_OpenfMRI.m
+# Configure SPM BIDS App entry point
+COPY spm_BIDS_App.m /opt/spm${SPM_VERSION}/
 
 COPY version /version
 
-ENTRYPOINT ["/opt/spm12/spm12","script","/code/spm_OpenfMRI.m"]
+ENTRYPOINT ["/opt/spm12/spm12","script","/opt/spm12/spm_BIDS_App.m"]

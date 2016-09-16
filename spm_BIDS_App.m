@@ -1,4 +1,10 @@
-% Example of SPM workflow for OpenfMRI 2.0 (using BIDS)
+% SPM BIDS App
+%   SPM:  http://www.fil.ion.ucl.ac.uk/spm/
+%   BIDS: http://bids.neuroimaging.io/
+%   App:  https://github.com/BIDS-Apps/SPM/
+%
+% See also:
+%   BIDS Validator: https://github.com/INCF/bids-validator
 
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
@@ -21,13 +27,41 @@ OpenfMRI = struct(...
 %-Input arguments
 %==========================================================================
 
-if numel(inputs) < 1
-    error('A BIDS directory has to be specified.');
-elseif numel(inputs) < 2
+if numel(inputs) == 0, inputs = {'--help'}; end
+if numel(inputs) == 1
+    switch inputs{1}
+        case {'-v','--version'}
+            fprintf('%s BIDS App version %s\n',...
+                spm('version'), deblank(fileread('/version')));
+        case {'-h','--help'}
+            fprintf([...
+                'Usage: bids/spm BIDS_DIR OUTPUT_DIR LEVEL [OPTIONS]\n',...
+                '       bids/spm [ -h | --help | -v | --version ]\n',...
+                '\n',...
+                'Mandatory inputs:\n',...
+                '    BIDS_DIR        Input directory following the BIDS standard\n',...
+                '    OUTPUT_DIR      Output directory\n',...
+                '    LEVEL           Level of the analysis that will be performed\n',...
+                '                    {participant,group}\n',...
+                '\n',...
+                'Options:\n',...
+                '    --participant_label PARTICIPANT_LABEL [PARTICIPANT_LABEL ...]\n',...
+                '                    Label(s) of the participant(s) to analyse\n',...
+                '    -h, --help      Print usage\n',...
+                '    -v, --version   Print version information and quit\n']);
+        otherwise
+            fprintf([...
+                'bids/spm: ''%s'' is not a valid syntax.\n',...
+                'See ''bids/spm --help''.\n'],inputs{1});
+    end
+    exit(0);
+end
+if numel(inputs) < 2
     error('An output directory has to be specified.');
 elseif numel(inputs) < 3
     error('Missing argument participant/group.');
 end
+
 OpenfMRI.dir    = inputs{1};
 OpenfMRI.outdir = inputs{2};
 OpenfMRI.level  = inputs{3};
@@ -79,13 +113,23 @@ elseif ~isempty(strmatch('group',OpenfMRI.level))
         error('BIDS output directory does not exist.');
     end
 else
-    error('Unknown level analysis.');
+    error('Unknown analysis level.');
 end
 
-system(['bids-validator ' OpenfMRI.dir])
 %==========================================================================
 %-Parse BIDS directory and validate list of participants
 %==========================================================================
+
+%-Call BIDS Validator
+%--------------------------------------------------------------------------
+[status, result] = system('bids-validator --version');
+if ~status
+    [status, result] = system(['bids-validator "' OpenfMRI.dir '"']);
+    if status~=0
+        fprintf('%s\n',result);
+        exit(1);
+    end
+end
 
 %-Parse BIDS directory
 %--------------------------------------------------------------------------
@@ -128,7 +172,7 @@ if ~isempty(strmatch('participant',OpenfMRI.level)) && ~isempty(OpenfMRI.partici
             error('Output temporary directory could not be created.');
         end
         %atExit = onCleanup(@() rmdir(OpenfMRI.tmpdir,'s'));
-
+        
         %-Copy participants' data
         %------------------------------------------------------------------
         for s=1:numel(OpenfMRI.participants)
@@ -141,7 +185,7 @@ if ~isempty(strmatch('participant',OpenfMRI.level)) && ~isempty(OpenfMRI.partici
             end
         end
     end
-
+    
     %-Uncompress gzipped NIfTI files
     %----------------------------------------------------------------------
     for s=1:numel(OpenfMRI.participants)
@@ -155,7 +199,7 @@ if ~isempty(strmatch('participant',OpenfMRI.level)) && ~isempty(OpenfMRI.partici
             end
         end
     end
-
+    
     %-Gather from BIDS structure all relevant information for analysis
     %----------------------------------------------------------------------
     % structural and functional images for each subject/visit/run/task
@@ -172,7 +216,7 @@ end
 %==========================================================================
 
 if ~isempty(strmatch('participant',OpenfMRI.level))
-
+    
     %-fMRI Preprocessing
     %======================================================================
     % ask for: slice timing correction (before or after realign)
@@ -185,60 +229,60 @@ if ~isempty(strmatch('participant',OpenfMRI.level))
     vox_anat = [1 1 1];
     vox_func = [3 3 3];
     FWHM = [12 12 12];
-
+    
     for s=1:numel(OpenfMRI.participants)
         clear matlabbatch f a
-
+        
         idx = find(ismember({BIDS.subjects.name},OpenfMRI.participants{s}));
         for i=1:numel(BIDS.subjects(idx).func)
             f{i,1} = fullfile(BIDS.subjects(idx).path,'func',BIDS.subjects(idx).func(i).filename);
         end
         a = fullfile(BIDS.subjects(idx).path,'anat',BIDS.subjects(idx).anat.filename); % assumes T1 is first
-
+        
         % Realign
         %------------------------------------------------------------------
         matlabbatch{1}.spm.spatial.realign.estwrite.data = cellfun(@(x) {{x}},f)';
         matlabbatch{1}.spm.spatial.realign.estwrite.roptions.which = [0 1];
-
+        
         % Coregister
         %------------------------------------------------------------------
         matlabbatch{2}.spm.spatial.coreg.estimate.ref    = cellstr(spm_file(f{1},'prefix','mean','number',1));
         matlabbatch{2}.spm.spatial.coreg.estimate.source = cellstr(a);
-
+        
         % Segment
         %------------------------------------------------------------------
         matlabbatch{3}.spm.spatial.preproc.channel.vols  = cellstr(a);
         matlabbatch{3}.spm.spatial.preproc.channel.write = [0 1];
         matlabbatch{3}.spm.spatial.preproc.warp.write    = [0 1];
-
+        
         % Normalise: Write
         %------------------------------------------------------------------
         matlabbatch{4}.spm.spatial.normalise.write.subj.def      = cellstr(spm_file(a,'prefix','y_','ext','nii'));
         matlabbatch{4}.spm.spatial.normalise.write.subj.resample = cellstr(f);
         matlabbatch{4}.spm.spatial.normalise.write.woptions.vox  = vox_func;
-
+        
         matlabbatch{5}.spm.spatial.normalise.write.subj.def      = cellstr(spm_file(a,'prefix','y_','ext','nii'));
         matlabbatch{5}.spm.spatial.normalise.write.subj.resample = cellstr(spm_file(a,'prefix','m','ext','nii'));
         matlabbatch{5}.spm.spatial.normalise.write.woptions.vox  = vox_anat;
-
+        
         % Smooth
         %------------------------------------------------------------------
         matlabbatch{6}.spm.spatial.smooth.data = cellstr(spm_file(f,'prefix','w'));
         matlabbatch{6}.spm.spatial.smooth.fwhm = FWHM;
-
+        
         spm_jobman('run',matlabbatch);
     end
-
+    
     % make sure relevant files are stored in OpenfMRI.outdir
     % -> normalised structural, smoothed normalised functional, movement pars
-
+    
     %-First Level fMRI
     %======================================================================
     fprintf('Nothing to do at fMRI first level yet.\n');
     for s=1:numel(OpenfMRI.participants)
-
+        
     end
-
+    
     % make sure relevant files are stored in OpenfMRI.outdir
     % -> the entire folder containing SPM.mat, also NIDM export
 end
