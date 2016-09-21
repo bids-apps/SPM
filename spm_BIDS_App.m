@@ -13,10 +13,10 @@
 
 
 %==========================================================================
-%-OpenfMRI structure
+%-BIDS App structure
 %==========================================================================
 
-OpenfMRI = struct(...
+BIDS_App = struct(...
     'dir','', ...            % BIDS root directory
     'outdir','', ...         % output directory
     'level','', ...          % first or second level analysis [participant*,group*]
@@ -31,8 +31,9 @@ if numel(inputs) == 0, inputs = {'--help'}; end
 if numel(inputs) == 1
     switch inputs{1}
         case {'-v','--version'}
-            fprintf('%s BIDS App version %s\n',...
-                spm('version'), deblank(fileread('/version')));
+            fprintf('%s BIDS App, %s %s, version %s\n',...
+                spm('version'), upper(spm_check_version), version, ...
+                deblank(fileread('/version')));
         case {'-h','--help'}
             fprintf([...
                 'Usage: bids/spm BIDS_DIR OUTPUT_DIR LEVEL [OPTIONS]\n',...
@@ -62,9 +63,9 @@ elseif numel(inputs) < 3
     error('Missing argument participant/group.');
 end
 
-OpenfMRI.dir    = inputs{1};
-OpenfMRI.outdir = inputs{2};
-OpenfMRI.level  = inputs{3};
+BIDS_App.dir    = inputs{1};
+BIDS_App.outdir = inputs{2};
+BIDS_App.level  = inputs{3};
 
 i = 4;
 while i <= numel(inputs)
@@ -81,7 +82,7 @@ while i <= numel(inputs)
         i = i + 1;
         if i <= numel(inputs)
             if inputs{i}(1) == '-', break; end
-            OpenfMRI.(arg){j} = inputs{i};
+            BIDS_App.(arg){j} = inputs{i};
             j = j + 1;
         else
             break;
@@ -95,25 +96,25 @@ end
 
 %- bids_dir
 %--------------------------------------------------------------------------
-if  ~exist(OpenfMRI.dir,'dir')
-    error('BIDS directory does not exist.');
+if ~exist(BIDS_App.dir,'dir')
+	error('BIDS directory "%s" does not exist.',BIDS_App.dir);
 end
 
 %- level [participant/group] & output_dir
 %--------------------------------------------------------------------------
-if ~isempty(strmatch('participant',OpenfMRI.level))
-    if ~exist(OpenfMRI.outdir,'dir')
-        sts = mkdir(OpenfMRI.outdir);
+if ~isempty(strmatch('participant',BIDS_App.level))
+    if ~exist(BIDS_App.outdir,'dir')
+        sts = mkdir(BIDS_App.outdir);
         if ~sts
             error('BIDS output directory could not be created.');
         end
     end
-elseif ~isempty(strmatch('group',OpenfMRI.level))
-    if ~exist(OpenfMRI.outdir,'dir')
-        error('BIDS output directory does not exist.');
+elseif ~isempty(strmatch('group',BIDS_App.level))
+    if ~exist(BIDS_App.outdir,'dir')
+        error('BIDS output directory "%s" does not exist.',BIDS_App.outdir);
     end
 else
-    error('Unknown analysis level.');
+    error('Unknown analysis level "%s".',BIDS_App.level);
 end
 
 %==========================================================================
@@ -124,7 +125,7 @@ end
 %--------------------------------------------------------------------------
 [status, result] = system('bids-validator --version');
 if ~status
-    [status, result] = system(['bids-validator "' OpenfMRI.dir '"']);
+    [status, result] = system(['bids-validator "' BIDS_App.dir '"']);
     if status~=0
         fprintf('%s\n',result);
         exit(1);
@@ -133,16 +134,16 @@ end
 
 %-Parse BIDS directory
 %--------------------------------------------------------------------------
-BIDS = spm_BIDS(OpenfMRI.dir);
+BIDS = spm_BIDS(BIDS_App.dir);
 
 %- --participant_label
 %--------------------------------------------------------------------------
-if isempty(OpenfMRI.participants)
-    OpenfMRI.participants = {BIDS.subjects.name};
+if isempty(BIDS_App.participants)
+    BIDS_App.participants = {BIDS.subjects.name};
 else
-    OpenfMRI.participants = cellfun(@(s) ['sub-' s], ...
-        OpenfMRI.participants, 'UniformOutput',false);
-    df = setdiff(OpenfMRI.participants,{BIDS.subjects.name});
+    BIDS_App.participants = cellfun(@(s) ['sub-' s], ...
+        BIDS_App.participants, 'UniformOutput',false);
+    df = setdiff(BIDS_App.participants,{BIDS.subjects.name});
     if ~isempty(df)
         error('Participant directory "%s" does not exist.',df{1});
     end
@@ -160,14 +161,14 @@ spm_jobman('initcfg');
 %==========================================================================
 
 atExit = '';
-OpenfMRI.tmpdir = OpenfMRI.dir;
+BIDS_App.tmpdir = BIDS_App.dir;
 
-if ~isempty(strmatch('participant',OpenfMRI.level)) && ~isempty(OpenfMRI.participants)
-    if OpenfMRI.temp
+if ~isempty(strmatch('participant',BIDS_App.level)) && ~isempty(BIDS_App.participants)
+    if BIDS_App.temp
         %-Create temporary directory
         %------------------------------------------------------------------
-        OpenfMRI.tmpdir = tempname(OpenfMRI.outdir);
-        sts = mkdir(OpenfMRI.tmpdir);
+        BIDS_App.tmpdir = tempname(BIDS_App.outdir);
+        sts = mkdir(BIDS_App.tmpdir);
         if ~sts
             error('Output temporary directory could not be created.');
         end
@@ -175,11 +176,11 @@ if ~isempty(strmatch('participant',OpenfMRI.level)) && ~isempty(OpenfMRI.partici
         
         %-Copy participants' data
         %------------------------------------------------------------------
-        for s=1:numel(OpenfMRI.participants)
+        for s=1:numel(BIDS_App.participants)
             fprintf('Temporary directory: %s\n',...
-                fullfile(OpenfMRI.tmpdir,OpenfMRI.participants{s}));
-            sts = copyfile(fullfile(OpenfMRI.dir,OpenfMRI.participants{s}),...
-                fullfile(OpenfMRI.tmpdir,OpenfMRI.participants{s}));
+                fullfile(BIDS_App.tmpdir,BIDS_App.participants{s}));
+            sts = copyfile(fullfile(BIDS_App.dir,BIDS_App.participants{s}),...
+                fullfile(BIDS_App.tmpdir,BIDS_App.participants{s}));
             if ~sts
                 error('Data could not be temporarily copied.');
             end
@@ -188,9 +189,9 @@ if ~isempty(strmatch('participant',OpenfMRI.level)) && ~isempty(OpenfMRI.partici
     
     %-Uncompress gzipped NIfTI files
     %----------------------------------------------------------------------
-    for s=1:numel(OpenfMRI.participants)
+    for s=1:numel(BIDS_App.participants)
         niigz = spm_select('FPListRec',...
-            fullfile(OpenfMRI.tmpdir,OpenfMRI.participants{s}),'^.*\.nii\.gz$');
+            fullfile(BIDS_App.tmpdir,BIDS_App.participants{s}),'^.*\.nii\.gz$');
         if ~isempty(niigz)
             niigz = cellstr(niigz);
             for i=1:numel(niigz)
@@ -203,11 +204,11 @@ if ~isempty(strmatch('participant',OpenfMRI.level)) && ~isempty(OpenfMRI.partici
     %-Gather from BIDS structure all relevant information for analysis
     %----------------------------------------------------------------------
     % structural and functional images for each subject/visit/run/task
-    for s=1:numel(OpenfMRI.participants)
-        idx = find(ismember({BIDS.subjects.name},OpenfMRI.participants{s}));
+    for s=1:numel(BIDS_App.participants)
+        idx = find(ismember({BIDS.subjects.name},BIDS_App.participants{s}));
         % numel(idx) > 1 for multiple sessions/visits
     end
-    BIDS = spm_changepath(BIDS,BIDS.dir,OpenfMRI.tmpdir);
+    BIDS = spm_changepath(BIDS,BIDS.dir,BIDS_App.tmpdir);
     BIDS = spm_changepath(BIDS,'.nii.gz','.nii');
 end
 
@@ -215,7 +216,7 @@ end
 %-Analysis level: participant
 %==========================================================================
 
-if ~isempty(strmatch('participant',OpenfMRI.level))
+if ~isempty(strmatch('participant',BIDS_App.level))
     
     %-fMRI Preprocessing
     %======================================================================
@@ -230,10 +231,10 @@ if ~isempty(strmatch('participant',OpenfMRI.level))
     vox_func = [3 3 3];
     FWHM = [12 12 12];
     
-    for s=1:numel(OpenfMRI.participants)
+    for s=1:numel(BIDS_App.participants)
         clear matlabbatch f a
         
-        idx = find(ismember({BIDS.subjects.name},OpenfMRI.participants{s}));
+        idx = find(ismember({BIDS.subjects.name},BIDS_App.participants{s}));
         for i=1:numel(BIDS.subjects(idx).func)
             f{i,1} = fullfile(BIDS.subjects(idx).path,'func',BIDS.subjects(idx).func(i).filename);
         end
@@ -270,7 +271,7 @@ if ~isempty(strmatch('participant',OpenfMRI.level))
         matlabbatch{6}.spm.spatial.smooth.data = cellstr(spm_file(f,'prefix','w'));
         matlabbatch{6}.spm.spatial.smooth.fwhm = FWHM;
         
-        spm_jobman('run',matlabbatch);
+        [~,prov] = spm_jobman('run',matlabbatch);
     end
     
     % make sure relevant files are stored in OpenfMRI.outdir
@@ -279,7 +280,7 @@ if ~isempty(strmatch('participant',OpenfMRI.level))
     %-First Level fMRI
     %======================================================================
     fprintf('Nothing to do at fMRI first level yet.\n');
-    for s=1:numel(OpenfMRI.participants)
+    for s=1:numel(BIDS_App.participants)
         
     end
     
@@ -291,7 +292,7 @@ end
 %-Analysis level: group
 %==========================================================================
 
-if ~isempty(strmatch('group',OpenfMRI.level))
+if ~isempty(strmatch('group',BIDS_App.level))
     fprintf('Nothing to do at the group level yet.\n');
 end
 
