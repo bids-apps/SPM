@@ -21,6 +21,7 @@ BIDS_App = struct(...
     'outdir','', ...         % output directory
     'level','', ...          % first or second level analysis [participant*,group*]
     'participants',{{}}, ... % label of participants to be considered
+    'pipelines',struct,...   % pipeline scripts
     'temp',true);            % create local temporary copy of input files
 
 %==========================================================================
@@ -66,6 +67,9 @@ end
 BIDS_App.dir    = inputs{1};
 BIDS_App.outdir = inputs{2};
 BIDS_App.level  = inputs{3};
+BIDS_App.pipelines = struct(...
+    'participant',fullfile(fileparts(mfilename()),'pipeline_participant.m'),...
+    'group',fullfile(fileparts(mfilename()),'pipeline_group.m'));
 
 i = 4;
 while i <= numel(inputs)
@@ -102,14 +106,14 @@ end
 
 %- level [participant/group] & output_dir
 %--------------------------------------------------------------------------
-if ~isempty(strmatch('participant',BIDS_App.level))
+if strncmp('participant',BIDS_App.level,11)
     if ~exist(BIDS_App.outdir,'dir')
         sts = mkdir(BIDS_App.outdir);
         if ~sts
             error('BIDS output directory could not be created.');
         end
     end
-elseif ~isempty(strmatch('group',BIDS_App.level))
+elseif strncmp('group',BIDS_App.level,5)
     if ~exist(BIDS_App.outdir,'dir')
         error('BIDS output directory "%s" does not exist.',BIDS_App.outdir);
     end
@@ -163,16 +167,17 @@ spm_jobman('initcfg');
 atExit = '';
 BIDS_App.tmpdir = BIDS_App.dir;
 
-if ~isempty(strmatch('participant',BIDS_App.level)) && ~isempty(BIDS_App.participants)
+if strncmp('participant',BIDS_App.level,11) && ~isempty(BIDS_App.participants)
     if BIDS_App.temp
         %-Create temporary directory
         %------------------------------------------------------------------
-        BIDS_App.tmpdir = tempname(BIDS_App.outdir);
-        sts = mkdir(BIDS_App.tmpdir);
-        if ~sts
-            error('Output temporary directory could not be created.');
-        end
-        %atExit = onCleanup(@() rmdir(OpenfMRI.tmpdir,'s'));
+        BIDS_App.tmpdir = BIDS_App.outdir;
+        %BIDS_App.tmpdir = tempname(BIDS_App.outdir);
+        %sts = mkdir(BIDS_App.tmpdir);
+        %if ~sts
+        %    error('Output temporary directory could not be created.');
+        %end
+        %atExit = onCleanup(@() rmdir(BIDS_App.tmpdir,'s'));
         
         %-Copy participants' data
         %------------------------------------------------------------------
@@ -216,75 +221,20 @@ end
 %-Analysis level: participant
 %==========================================================================
 
-if ~isempty(strmatch('participant',BIDS_App.level))
+if strncmp('participant',BIDS_App.level,11)
     
-    %-fMRI Preprocessing
-    %======================================================================
-    % ask for: slice timing correction (before or after realign)
-    % ask for: fieldmap
-    % ask for: realign and unwarp
-    % ask for: coregister with bias corrected (skull stripped?) anat
-    % ask for: voxel size for normalise/write
-    % ask for: smoothing kernel FWHM
-    % ask for: DARTEL
-    vox_anat = [1 1 1];
-    vox_func = [3 3 3];
-    FWHM = [12 12 12];
+    BIDS_ORIG = BIDS;
     
     for s=1:numel(BIDS_App.participants)
-        clear matlabbatch f a
-        
         idx = find(ismember({BIDS.subjects.name},BIDS_App.participants{s}));
-        for i=1:numel(BIDS.subjects(idx).func)
-            f{i,1} = fullfile(BIDS.subjects(idx).path,'func',BIDS.subjects(idx).func(i).filename);
-        end
-        a = fullfile(BIDS.subjects(idx).path,'anat',BIDS.subjects(idx).anat.filename); % assumes T1 is first
-        
-        % Realign
-        %------------------------------------------------------------------
-        matlabbatch{1}.spm.spatial.realign.estwrite.data = cellfun(@(x) {{x}},f)';
-        matlabbatch{1}.spm.spatial.realign.estwrite.roptions.which = [0 1];
-        
-        % Coregister
-        %------------------------------------------------------------------
-        matlabbatch{2}.spm.spatial.coreg.estimate.ref    = cellstr(spm_file(f{1},'prefix','mean','number',1));
-        matlabbatch{2}.spm.spatial.coreg.estimate.source = cellstr(a);
-        
-        % Segment
-        %------------------------------------------------------------------
-        matlabbatch{3}.spm.spatial.preproc.channel.vols  = cellstr(a);
-        matlabbatch{3}.spm.spatial.preproc.channel.write = [0 1];
-        matlabbatch{3}.spm.spatial.preproc.warp.write    = [0 1];
-        
-        % Normalise: Write
-        %------------------------------------------------------------------
-        matlabbatch{4}.spm.spatial.normalise.write.subj.def      = cellstr(spm_file(a,'prefix','y_','ext','nii'));
-        matlabbatch{4}.spm.spatial.normalise.write.subj.resample = cellstr(f);
-        matlabbatch{4}.spm.spatial.normalise.write.woptions.vox  = vox_func;
-        
-        matlabbatch{5}.spm.spatial.normalise.write.subj.def      = cellstr(spm_file(a,'prefix','y_','ext','nii'));
-        matlabbatch{5}.spm.spatial.normalise.write.subj.resample = cellstr(spm_file(a,'prefix','m','ext','nii'));
-        matlabbatch{5}.spm.spatial.normalise.write.woptions.vox  = vox_anat;
-        
-        % Smooth
-        %------------------------------------------------------------------
-        matlabbatch{6}.spm.spatial.smooth.data = cellstr(spm_file(f,'prefix','w'));
-        matlabbatch{6}.spm.spatial.smooth.fwhm = FWHM;
-        
-        [~,prov] = spm_jobman('run',matlabbatch);
+        BIDS = BIDS_ORIG;
+        BIDS.subjects = BIDS.subjects(idx);
+        spm('Run',BIDS_App.pipelines.(BIDS_App.level));
+        BIDS = BIDS_ORIG;
     end
     
-    % make sure relevant files are stored in OpenfMRI.outdir
+    % make sure relevant files are stored in BIDS_App.outdir
     % -> normalised structural, smoothed normalised functional, movement pars
-    
-    %-First Level fMRI
-    %======================================================================
-    fprintf('Nothing to do at fMRI first level yet.\n');
-    for s=1:numel(BIDS_App.participants)
-        
-    end
-    
-    % make sure relevant files are stored in OpenfMRI.outdir
     % -> the entire folder containing SPM.mat, also NIDM export
 end
 
@@ -292,12 +242,20 @@ end
 %-Analysis level: group
 %==========================================================================
 
-if ~isempty(strmatch('group',BIDS_App.level))
-    fprintf('Nothing to do at the group level yet.\n');
+if strncmp('group',BIDS_App.level,5)
+    
+    BIDS_ORIG = BIDS;
+    
+    [~,idx] = intersect({BIDS.subjects.name},BIDS_App.participants);
+    BIDS = BIDS_ORIG;
+    BIDS.subjects = BIDS.subjects(idx);
+    spm('Run',BIDS_App.pipelines.(BIDS_App.level));
+    
+    BIDS = BIDS_ORIG;
+    
+    % make sure relevant files are stored in BIDS_App.outdir
+    % -> the entire folder containing SPM.mat, also NIDM export
 end
-
-% make sure relevant files are stored in OpenfMRI.outdir
-% -> the entire folder containing SPM.mat, also NIDM export
 
 %==========================================================================
 %-Delete temporary files and exit
