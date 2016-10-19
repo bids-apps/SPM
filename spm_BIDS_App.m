@@ -67,9 +67,11 @@ end
 BIDS_App.dir    = inputs{1};
 BIDS_App.outdir = inputs{2};
 BIDS_App.level  = inputs{3};
-BIDS_App.pipelines = struct(...
-    'participant',fullfile(fileparts(mfilename()),'pipeline_participant.m'),...
-    'group',fullfile(fileparts(mfilename()),'pipeline_group.m'));
+
+d = dir(fullfile(fileparts(mfilename('fullpath')),'pipeline_*.m'));
+for i=1:numel(d)
+    BIDS_App.pipelines.(d(i).name(10:end-2)) = fullfile(d(i).folder,d(i).name);
+end
 
 i = 4;
 while i <= numel(inputs)
@@ -121,6 +123,11 @@ else
     error('Unknown analysis level "%s".',BIDS_App.level);
 end
 
+if ~isfield(BIDS_App.pipelines,BIDS_App.level)
+    error('No pipeline description available for analysis level "%s".',...
+        BIDS_App.level);
+end
+
 %==========================================================================
 %-Parse BIDS directory and validate list of participants
 %==========================================================================
@@ -161,7 +168,7 @@ spm('defaults','fmri');
 spm_jobman('initcfg');
 
 %==========================================================================
-%-Temporary copy of input data and uncompress image files
+%-(Temporary) Copy of input data and uncompress image files
 %==========================================================================
 
 atExit = '';
@@ -182,8 +189,8 @@ if strncmp('participant',BIDS_App.level,11) && ~isempty(BIDS_App.participants)
         %-Copy participants' data
         %------------------------------------------------------------------
         for s=1:numel(BIDS_App.participants)
-            fprintf('Temporary directory: %s\n',...
-                fullfile(BIDS_App.tmpdir,BIDS_App.participants{s}));
+            %fprintf('Temporary directory: %s\n',...
+            %    fullfile(BIDS_App.tmpdir,BIDS_App.participants{s}));
             sts = copyfile(fullfile(BIDS_App.dir,BIDS_App.participants{s}),...
                 fullfile(BIDS_App.tmpdir,BIDS_App.participants{s}));
             if ~sts
@@ -206,19 +213,20 @@ if strncmp('participant',BIDS_App.level,11) && ~isempty(BIDS_App.participants)
         end
     end
     
-    %-Gather from BIDS structure all relevant information for analysis
+    %-Update BIDS structure to point to new local files
     %----------------------------------------------------------------------
-    % structural and functional images for each subject/visit/run/task
-    for s=1:numel(BIDS_App.participants)
-        idx = find(ismember({BIDS.subjects.name},BIDS_App.participants{s}));
-        % numel(idx) > 1 for multiple sessions/visits
-    end
     BIDS = spm_changepath(BIDS,BIDS.dir,BIDS_App.tmpdir);
     BIDS = spm_changepath(BIDS,'.nii.gz','.nii');
 end
 
+%-Simplify BIDS structure to only contain participants under study
+%--------------------------------------------------------------------------
+[idx,jdx] = ismember({BIDS.subjects.name},BIDS_App.participants);
+jdx = jdx(idx); idx = find(idx);
+BIDS.subjects = BIDS.subjects(idx(jdx));
+
 %==========================================================================
-%-Analysis level: participant
+%-Analysis level: participant*
 %==========================================================================
 
 if strncmp('participant',BIDS_App.level,11)
@@ -226,35 +234,26 @@ if strncmp('participant',BIDS_App.level,11)
     BIDS_ORIG = BIDS;
     
     for s=1:numel(BIDS_App.participants)
-        idx = find(ismember({BIDS.subjects.name},BIDS_App.participants{s}));
         BIDS = BIDS_ORIG;
-        BIDS.subjects = BIDS.subjects(idx);
+        BIDS.subjects = BIDS.subjects(s);
+        spm('FnBanner',['BIDS ' upper(BIDS_App.level) ' ' BIDS.subjects.name]);
         spm('Run',BIDS_App.pipelines.(BIDS_App.level));
         BIDS = BIDS_ORIG;
     end
     
     % make sure relevant files are stored in BIDS_App.outdir
-    % -> normalised structural, smoothed normalised functional, movement pars
-    % -> the entire folder containing SPM.mat, also NIDM export
 end
 
 %==========================================================================
-%-Analysis level: group
+%-Analysis level: group*
 %==========================================================================
 
 if strncmp('group',BIDS_App.level,5)
     
-    BIDS_ORIG = BIDS;
-    
-    [~,idx] = intersect({BIDS.subjects.name},BIDS_App.participants);
-    BIDS = BIDS_ORIG;
-    BIDS.subjects = BIDS.subjects(idx);
+    spm('FnBanner',['BIDS ' upper(BIDS_App.level)]);
     spm('Run',BIDS_App.pipelines.(BIDS_App.level));
     
-    BIDS = BIDS_ORIG;
-    
     % make sure relevant files are stored in BIDS_App.outdir
-    % -> the entire folder containing SPM.mat, also NIDM export
 end
 
 %==========================================================================

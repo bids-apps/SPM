@@ -1,7 +1,10 @@
-% Do not modify variables: BIDS,BIDS_App, BIDS_ORIG
+%==========================================================================
+%           C O N F I G U R A T I O N    F I L E  :  G R O U P
+%==========================================================================
+
+% Available variables: BIDS and BIDS_App
 
 %==========================================================================
 %-Second Level fMRI
 %==========================================================================
-
-fprintf('Nothing to do at the group level yet.\n');
+fprintf('Nothing to do at fMRI second level.\n');

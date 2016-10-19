@@ -1,4 +1,8 @@
-% Do not modify variables: BIDS,BIDS_App, BIDS_ORIG, s
+%==========================================================================
+%     C O N F I G U R A T I O N    F I L E  :  P A R T I C I P A N T
+%==========================================================================
+
+% Available variables: BIDS and BIDS_App
 
 %==========================================================================
 %-fMRI Preprocessing
@@ -59,4 +63,4 @@ matlabbatch{6}.spm.spatial.smooth.fwhm = FWHM;
 %==========================================================================
 %-First Level fMRI
 %==========================================================================
-fprintf('Nothing to do at fMRI first level yet.\n');
+fprintf('Nothing to do at fMRI first level.\n');
