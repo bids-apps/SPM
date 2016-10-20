@@ -25,7 +25,7 @@ ENV MCR_INHIBIT_CTF_LOCK 1
 
 # Install SPM Standalone
 ENV SPM_VERSION 12
-ENV SPM_REVISION r6876
+ENV SPM_REVISION r6906
 ENV SPM_DIR /opt/spm${SPM_VERSION}
 ENV SPM_EXEC ${SPM_DIR}/spm${SPM_VERSION}
 RUN wget -P /opt http://www.fil.ion.ucl.ac.uk/spm/download/restricted/bids/spm${SPM_VERSION}_${SPM_REVISION}_Linux_${MATLAB_VERSION}.zip && \

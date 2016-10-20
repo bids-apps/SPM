@@ -21,7 +21,7 @@ BIDS_App = struct(...
     'outdir','', ...         % output directory
     'level','', ...          % first or second level analysis [participant*,group*]
     'participants',{{}}, ... % label of participants to be considered
-    'pipelines',struct,...   % pipeline scripts
+    'config','',...          % configuration script
     'temp',true);            % create local temporary copy of input files
 
 %==========================================================================
@@ -51,6 +51,11 @@ if numel(inputs) == 1
                 '                    Label(s) of the participant(s) to analyse\n',...
                 '    -h, --help      Print usage\n',...
                 '    -v, --version   Print version information and quit\n']);
+        case {'--gui'}
+            cd(spm('Dir'));
+            waitfor(spm_Welcome);
+            waitfor(spm_figure('FindWin','Menu'));
+            exit(0);
         otherwise
             fprintf([...
                 'bids/spm: ''%s'' is not a valid syntax.\n',...
@@ -68,17 +73,14 @@ BIDS_App.dir    = inputs{1};
 BIDS_App.outdir = inputs{2};
 BIDS_App.level  = inputs{3};
 
-d = dir(fullfile(fileparts(mfilename('fullpath')),'pipeline_*.m'));
-for i=1:numel(d)
-    BIDS_App.pipelines.(d(i).name(10:end-2)) = fullfile(d(i).folder,d(i).name);
-end
-
 i = 4;
 while i <= numel(inputs)
     arg = inputs{i};
     switch arg
         case '--participant_label'
             arg = 'participants';
+        case '--config'
+            arg = 'config';
         otherwise
             warning('Unknown input argument "%s".',arg);
             arg = strtok(arg,'-');
@@ -123,9 +125,22 @@ else
     error('Unknown analysis level "%s".',BIDS_App.level);
 end
 
-if ~isfield(BIDS_App.pipelines,BIDS_App.level)
-    error('No pipeline description available for analysis level "%s".',...
-        BIDS_App.level);
+%-Configuration file
+%--------------------------------------------------------------------------
+if ~isempty(BIDS_App.config)
+    if numel(BIDS_App.config) > 1
+        error('More than one configuration file provided.');
+    end
+    BIDS_App.config = char(BIDS_App.config);
+    if ~spm_existfile(BIDS_App.config)
+        error('Cannot find configuration file "%s".',BIDS_App.config);
+    end
+else
+    BIDS_App.config = fullfile(fileparts(mfilename('fullpath')),...
+        ['pipeline_' BIDS_App.level '.m']);
+    if ~spm_existfile(BIDS_App.config)
+        error('No default configuration file found for "%s" level.',BIDS_App.level);
+    end
 end
 
 %==========================================================================
@@ -237,7 +252,7 @@ if strncmp('participant',BIDS_App.level,11)
         BIDS = BIDS_ORIG;
         BIDS.subjects = BIDS.subjects(s);
         spm('FnBanner',['BIDS ' upper(BIDS_App.level) ' ' BIDS.subjects.name]);
-        spm('Run',BIDS_App.pipelines.(BIDS_App.level));
+        spm('Run',BIDS_App.config);
         BIDS = BIDS_ORIG;
     end
     
@@ -251,7 +266,7 @@ end
 if strncmp('group',BIDS_App.level,5)
     
     spm('FnBanner',['BIDS ' upper(BIDS_App.level)]);
-    spm('Run',BIDS_App.pipelines.(BIDS_App.level));
+    spm('Run',BIDS_App.config);
     
     % make sure relevant files are stored in BIDS_App.outdir
 end
