@@ -22,7 +22,14 @@ f = cell(numel(BIDS.subjects.func),1);
 for i=1:numel(BIDS.subjects.func)
     f{i} = fullfile(BIDS.subjects.path,'func',BIDS.subjects.func(i).filename);
 end
-a = fullfile(BIDS.subjects.path,'anat',BIDS.subjects.anat.filename); % assumes T1 is first
+a = '';
+for i=1:numel(BIDS.subjects.anat)
+    if strcmp(BIDS.subjects.anat(i).type,'T1w')
+        a = fullfile(BIDS.subjects.path,'anat',BIDS.subjects.anat(i).filename);
+        break
+    end
+end
+if isempty(a), error('Cannot find T1-weighted image.'); end
 
 clear matlabbatch
 

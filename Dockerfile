@@ -16,7 +16,7 @@ RUN mkdir /opt/mcr_install && \
     wget -P /opt/mcr_install http://www.mathworks.com/supportfiles/downloads/${MATLAB_VERSION}/deployment_files/${MATLAB_VERSION}/installers/glnxa64/MCR_${MATLAB_VERSION}_glnxa64_installer.zip && \
     unzip -q /opt/mcr_install/MCR_${MATLAB_VERSION}_glnxa64_installer.zip -d /opt/mcr_install && \
     /opt/mcr_install/install -destinationFolder /opt/mcr -agreeToLicense yes -mode silent && \
-    rm -rf /opt/mcr_install
+    rm -rf /opt/mcr_install /tmp/*
 
 # Configure environment
 ENV MCR_VERSION v91

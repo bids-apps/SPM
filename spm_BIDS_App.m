@@ -132,6 +132,12 @@ if ~isempty(BIDS_App.config)
         error('More than one configuration file provided.');
     end
     BIDS_App.config = char(BIDS_App.config);
+    if isempty(fileparts(BIDS_App.config))
+        BIDS_App.config = fullfile(fileparts(mfilename('fullpath')),BIDS_App.config);
+    end
+    if isempty(spm_file(BIDS_App.config,'ext'))
+        BIDS_App.config = [BIDS_App.config '.m'];
+    end
     if ~spm_existfile(BIDS_App.config)
         error('Cannot find configuration file "%s".',BIDS_App.config);
     end
