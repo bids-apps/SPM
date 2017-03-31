@@ -1,6 +1,17 @@
 # SPM BIDS App
 
-BIDS App containing an instance of the [SPM12 software](http://www.fil.ion.ucl.ac.uk/spm/).
+The [SPM](http://www.fil.ion.ucl.ac.uk/spm/) BIDS App contains an instance of the [SPM12 software](http://www.fil.ion.ucl.ac.uk/spm/software/spm12/).
+
+## Description
+
+The available pipeline is for the preprocessing of fMRI data, and can implement implement any or all of the following steps: 
+
+  * Slice Timing Correction - Correct differences in image acquisition time between slices (before or after realignment).
+  * Field Map - Generate  unwrapped  field  maps  which  are converted to voxel displacement maps (VDM) that can be used to unwarp geometrically distorted EPI images.
+  * Realign (& Unwarp) - Within-subject registration and unwarping of time series.
+  * Coregistration - Place realigned time series in register with (bias corrected) structural image.
+  * Segmentation - Segments,  bias  corrects  and  spatially normalises (all in the same model) based on the unified segmentation approach as implemented by `spm_preproc`.
+  * Smooth - Smoothing (or convolving) image volumes with a Gaussian kernel of a specified width.
 
 ## Documentation
 
