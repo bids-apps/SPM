@@ -6,7 +6,7 @@
 % See also:
 %   BIDS Validator: https://github.com/INCF/bids-validator
 
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
 % $Id$
@@ -171,15 +171,16 @@ BIDS = spm_BIDS(BIDS_App.dir);
 %- --participant_label
 %--------------------------------------------------------------------------
 if isempty(BIDS_App.participants)
-    BIDS_App.participants = {BIDS.subjects.name};
+    BIDS_App.participants = spm_BIDS(BIDS,'subjects');
 else
-    BIDS_App.participants = cellfun(@(s) ['sub-' s], ...
-        BIDS_App.participants, 'UniformOutput',false);
-    df = setdiff(BIDS_App.participants,{BIDS.subjects.name});
+    df = setdiff(BIDS_App.participants,spm_BIDS(BIDS,'subjects'));
     if ~isempty(df)
         error('Participant directory "%s" does not exist.',df{1});
     end
 end
+BIDS_App.participants = cellfun(@(s) ['sub-' s], ...
+    BIDS_App.participants, 'UniformOutput',false);
+
 
 %==========================================================================
 %-SPM Initialisation

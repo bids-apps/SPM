@@ -18,17 +18,9 @@ vox_anat = [1 1 1];
 vox_func = [3 3 3];
 FWHM = [12 12 12];
 
-f = cell(numel(BIDS.subjects.func),1);
-for i=1:numel(BIDS.subjects.func)
-    f{i} = fullfile(BIDS.subjects.path,'func',BIDS.subjects.func(i).filename);
-end
-a = '';
-for i=1:numel(BIDS.subjects.anat)
-    if strcmp(BIDS.subjects.anat(i).type,'T1w')
-        a = fullfile(BIDS.subjects.path,'anat',BIDS.subjects.anat(i).filename);
-        break
-    end
-end
+f = spm_BIDS(BIDS,'data', 'modality','func', 'type','bold');
+if isempty(f), error('Cannot find BOLD time series.'); end
+a = spm_BIDS(BIDS,'data', 'modality','anat', 'type','T1w');
 if isempty(a), error('Cannot find T1-weighted image.'); end
 
 clear matlabbatch
