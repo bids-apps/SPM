@@ -10,7 +10,7 @@ RUN apt-get -qq update && apt-get -qq install -y \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Install MATLAB MCR
-ENV MATLAB_VERSION R2016b
+ENV MATLAB_VERSION R2017a
 RUN mkdir /opt/mcr_install && \
     mkdir /opt/mcr && \
     wget -P /opt/mcr_install http://www.mathworks.com/supportfiles/downloads/${MATLAB_VERSION}/deployment_files/${MATLAB_VERSION}/installers/glnxa64/MCR_${MATLAB_VERSION}_glnxa64_installer.zip && \
@@ -19,13 +19,13 @@ RUN mkdir /opt/mcr_install && \
     rm -rf /opt/mcr_install /tmp/*
 
 # Configure environment
-ENV MCR_VERSION v91
+ENV MCR_VERSION v92
 ENV LD_LIBRARY_PATH /opt/mcr/${MCR_VERSION}/runtime/glnxa64:/opt/mcr/${MCR_VERSION}/bin/glnxa64:/opt/mcr/${MCR_VERSION}/sys/os/glnxa64:/opt/mcr/${MCR_VERSION}/sys/opengl/lib/glnxa64
 ENV MCR_INHIBIT_CTF_LOCK 1
 
 # Install SPM Standalone
 ENV SPM_VERSION 12
-ENV SPM_REVISION r7055
+ENV SPM_REVISION r7103
 ENV SPM_DIR /opt/spm${SPM_VERSION}
 ENV SPM_EXEC ${SPM_DIR}/spm${SPM_VERSION}
 RUN wget -P /opt http://www.fil.ion.ucl.ac.uk/spm/download/restricted/bids/spm${SPM_VERSION}_${SPM_REVISION}_Linux_${MATLAB_VERSION}.zip && \
