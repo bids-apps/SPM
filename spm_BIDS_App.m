@@ -22,7 +22,8 @@ BIDS_App = struct(...
     'level','', ...          % first or second level analysis [participant*,group*]
     'participants',{{}}, ... % label of participants to be considered
     'config','',...          % configuration script
-    'temp',true);            % create local temporary copy of input files
+    'temp',true,...          % create local temporary copy of input files
+    'validate',true);
 
 %==========================================================================
 %-Input arguments
@@ -52,6 +53,8 @@ if numel(inputs) == 1
                 '    --config CONFIG_FILE\n',...
                 '                    Optional configuration M-file describing\n',...
                 '                    the analysis to be performed\n',...
+                '    --skip-bids-validator\n',...
+                '                    Skip BIDS validation\n',...
                 '    -h, --help      Print usage\n',...
                 '    -v, --version   Print version information and quit\n']);
         case {'--gui'}
@@ -84,6 +87,10 @@ while i <= numel(inputs)
             arg = 'participants';
         case '--config'
             arg = 'config';
+        case '--skip-bids-validator'
+            BIDS_App.validate = false;
+            i = i + 1;
+            continue;
         otherwise
             warning('Unknown input argument "%s".',arg);
             arg = strtok(arg,'-');
@@ -158,12 +165,14 @@ end
 
 %-Call BIDS Validator
 %--------------------------------------------------------------------------
-[status, result] = system('bids-validator --version');
-if ~status
-    [status, result] = system(['bids-validator "' BIDS_App.dir '"']);
-    if status~=0
-        fprintf('%s\n',result);
-        exit(1);
+if BIDS_App.validate
+    [status, result] = system('bids-validator --version');
+    if ~status
+        [status, result] = system(['bids-validator "' BIDS_App.dir '"']);
+        if status~=0
+            fprintf('%s\n',result);
+            exit(1);
+        end
     end
 end
 
