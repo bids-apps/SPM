@@ -6,7 +6,7 @@
 % See also:
 %   BIDS Validator: https://github.com/INCF/bids-validator
 
-% Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2016-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
 % $Id$
@@ -49,6 +49,9 @@ if numel(inputs) == 1
                 'Options:\n',...
                 '    --participant_label PARTICIPANT_LABEL [PARTICIPANT_LABEL ...]\n',...
                 '                    Label(s) of the participant(s) to analyse\n',...
+                '    --config CONFIG_FILE\n',...
+                '                    Optional configuration M-file describing\n',...
+                '                    the analysis to be performed\n',...
                 '    -h, --help      Print usage\n',...
                 '    -v, --version   Print version information and quit\n']);
         case {'--gui'}
@@ -237,8 +240,8 @@ if strncmp('participant',BIDS_App.level,11) && ~isempty(BIDS_App.participants)
     
     %-Update BIDS structure to point to new local files
     %----------------------------------------------------------------------
-    BIDS = spm_changepath(BIDS,BIDS.dir,BIDS_App.tmpdir);
-    BIDS = spm_changepath(BIDS,'.nii.gz','.nii');
+    BIDS = spm_changepath(BIDS,BIDS.dir,BIDS_App.tmpdir,false);
+    BIDS = spm_changepath(BIDS,'.nii.gz','.nii',false);
 end
 
 %-Simplify BIDS structure to only contain participants under study

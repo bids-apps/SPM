@@ -62,4 +62,4 @@ matlabbatch{6}.spm.spatial.smooth.fwhm = FWHM;
 %==========================================================================
 %-First Level fMRI
 %==========================================================================
-fprintf('Nothing to do at fMRI first level.\n');
+%fprintf('Nothing to do at fMRI first level.\n');
