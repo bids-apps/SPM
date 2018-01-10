@@ -17,6 +17,7 @@ $ docker run bids/spm bids_dir output_dir level [--participant_label PARTICIPANT
 ```
 
 For example, to run an analysis in ```participant``` level mode, type:
+
 ```
 $ docker run -ti --rm \
   -v /tmp:/tmp \
@@ -25,11 +26,12 @@ $ docker run -ti --rm \
   -v /path/to/local/output/:/output \
   bids/spm \
   /data /output participant --participant_label 01
-
 ```
 
 For example, to run an analysis in ```group``` level mode with a user-defined pipeline, type:
-`$ docker run -ti --rm \
+
+```
+$ docker run -ti --rm \
   -v /tmp:/tmp \
   -v /var/tmp:/var/tmp \
   -v /path/to/local/bids/input/dataset/:/data \
@@ -37,7 +39,6 @@ For example, to run an analysis in ```group``` level mode with a user-defined pi
   -v /path/to/local/cfg/:/cfg \
   bids/spm \
   /data /output group --config /cfg/my_pipeline_group.m
-
 ```
 
 To build the container, type:
