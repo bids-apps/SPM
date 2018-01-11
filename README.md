@@ -47,11 +47,31 @@ To build the container, type:
 $ docker build -t <yourhandle>/spm12 .
 ```
 
+### Configuration file
+
+The configuration file is a MATLAB script detailing the analysis pipeline to be executed. Two struct variables, ```BIDS``` and ```BIDS_App``` are available from within the script, containing details from the command line and the BIDS-formatted dataset. In particular, the ```BIDS``` structure can be queried using the ```spm_BIDS()``` function. The default configuration files for first and second level analyses are ```pipeline_participant.m``` and ```pipeline_group.m```. A template for a single configuration file for all levels could be as follow:
+
+```
+if strcmp(BIDS_App.level,'participant')
+    % First level analysis
+    
+    % Get T1-weighted image filename for given subject:
+    % a = spm_BIDS(BIDS,'data', 'modality','anat', 'type','T1w');
+    % ...
+else
+    % Second level analysis
+    
+    % The name of the directory containing first level outputs is stored in:
+    % BIDS_App.outdir
+    % ...
+end
+```
+
 ## Error Reporting
 
 If you have a specific problem with the SPM BIDS App, please open an [issue](https://github.com/BIDS-Apps/SPM/issues) on GitHub.
 
-If your issue concerns SPM more generally, please use the [SPM mailing list](https://www.jiscmail.ac.uk/cgi-bin/webadmin?A0=spm)
+If your issue concerns SPM more generally, please use the [SPM mailing list](https://www.jiscmail.ac.uk/cgi-bin/webadmin?A0=spm).
 
 ## Acknowledgement
 
