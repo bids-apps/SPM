@@ -255,9 +255,9 @@ end
 
 %-Simplify BIDS structure to only contain participants under study
 %--------------------------------------------------------------------------
-[idx,jdx] = ismember({BIDS.subjects.name},BIDS_App.participants);
-jdx = jdx(idx); idx = find(idx);
-BIDS.subjects = BIDS.subjects(idx(jdx));
+idx = ismember({BIDS.subjects.name},BIDS_App.participants);
+BIDS.subjects = BIDS.subjects(idx);
+% BIDS.participants variables should also be edited
 
 %==========================================================================
 %-Analysis level: participant*
