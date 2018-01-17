@@ -257,7 +257,10 @@ end
 %--------------------------------------------------------------------------
 idx = ismember({BIDS.subjects.name},BIDS_App.participants);
 BIDS.subjects = BIDS.subjects(idx);
-% BIDS.participants variables should also be edited
+idx = ismember(BIDS.participants.participant_id,BIDS_App.participants);
+for fn=fieldnames(BIDS.participants)'
+    BIDS.participants.(char(fn)) = BIDS.participants.(char(fn))(idx);
+end
 
 %==========================================================================
 %-Analysis level: participant*
@@ -269,10 +272,14 @@ if strncmp('participant',BIDS_App.level,11)
     
     for s=1:numel(BIDS_App.participants)
         BIDS = BIDS_ORIG;
-        BIDS.subjects = BIDS.subjects(s);
-        spm('FnBanner',['BIDS ' upper(BIDS_App.level) ' ' BIDS.subjects.name]);
+        idx = ismember({BIDS.subjects.name},BIDS_App.participants{s});
+        BIDS.subjects = BIDS.subjects(idx);
+        idx = ismember(BIDS.participants.participant_id,BIDS_App.participants{s});
+        for fn=fieldnames(BIDS.participants)'
+            BIDS.participants.(char(fn)) = BIDS.participants.(char(fn))(idx);
+        end
+        spm('FnBanner',['BIDS ' upper(BIDS_App.level) ' ' BIDS_App.participants{s}]);
         spm('Run',BIDS_App.config);
-        BIDS = BIDS_ORIG;
     end
     
     % make sure relevant files are stored in BIDS_App.outdir
@@ -294,3 +301,4 @@ end
 %-Delete temporary files and exit
 %==========================================================================
 %delete(atExit);
+close all force
