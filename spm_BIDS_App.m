@@ -257,9 +257,11 @@ end
 %--------------------------------------------------------------------------
 idx = ismember({BIDS.subjects.name},BIDS_App.participants);
 BIDS.subjects = BIDS.subjects(idx);
-idx = ismember(BIDS.participants.participant_id,BIDS_App.participants);
-for fn=fieldnames(BIDS.participants)'
-    BIDS.participants.(char(fn)) = BIDS.participants.(char(fn))(idx);
+if ~isempty(BIDS.participants)
+    idx = ismember(BIDS.participants.participant_id,BIDS_App.participants);
+    for fn=fieldnames(BIDS.participants)'
+        BIDS.participants.(char(fn)) = BIDS.participants.(char(fn))(idx);
+    end
 end
 
 %==========================================================================
@@ -274,9 +276,11 @@ if strncmp('participant',BIDS_App.level,11)
         BIDS = BIDS_ORIG;
         idx = ismember({BIDS.subjects.name},BIDS_App.participants{s});
         BIDS.subjects = BIDS.subjects(idx);
-        idx = ismember(BIDS.participants.participant_id,BIDS_App.participants{s});
-        for fn=fieldnames(BIDS.participants)'
-            BIDS.participants.(char(fn)) = BIDS.participants.(char(fn))(idx);
+        if ~isempty(BIDS.participants)
+            idx = ismember(BIDS.participants.participant_id,BIDS_App.participants{s});
+            for fn=fieldnames(BIDS.participants)'
+                BIDS.participants.(char(fn)) = BIDS.participants.(char(fn))(idx);
+            end
         end
         spm('FnBanner',['BIDS ' upper(BIDS_App.level) ' ' BIDS_App.participants{s}]);
         spm('Run',BIDS_App.config);
