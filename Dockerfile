@@ -36,6 +36,8 @@ RUN wget -P /opt http://www.fil.ion.ucl.ac.uk/spm/download/restricted/bids/spm${
 # Configure SPM BIDS App entry point
 COPY run.sh spm_BIDS_App.m pipeline_participant.m pipeline_group.m /opt/spm${SPM_VERSION}/
 RUN chmod +x /opt/spm${SPM_VERSION}/run.sh
+RUN chmod +x /opt/spm${SPM_VERSION}/spm${SPM_VERSION}
+RUN chmod +x /opt/spm${SPM_VERSION}/run_spm12.sh
 COPY version /version
 
 ENTRYPOINT ["/opt/spm12/run.sh"]
