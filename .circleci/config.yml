@@ -1,8 +1,8 @@
 version: 2
 jobs:
   build:
-    machine:
-      image: circleci/classic:latest
+    docker:
+      - image: python:3.7
     steps:
       - checkout
       - run:
@@ -28,14 +28,14 @@ jobs:
             - data/ds114_test1
             - docker/image.tar
   test:
-    machine:
-      image: circleci/classic:latest
+    docker:
+      - image: python:3.7
     steps:
       - attach_workspace:
           at: /tmp/workspace
   deploy:
     docker:
-      - image: circleci/buildpack-deps:stretch
+      - image: buildpack-deps:stretch
     steps:
       - attach_workspace:
           at: /tmp/workspace
