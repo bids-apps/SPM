@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: python:3.7
+      - image: circleci/python:3.7
     steps:
       - checkout
       - run:
@@ -29,13 +29,13 @@ jobs:
             - docker/image.tar
   test:
     docker:
-      - image: python:3.7
+      - image: circleci/python:3.7
     steps:
       - attach_workspace:
           at: /tmp/workspace
   deploy:
     docker:
-      - image: buildpack-deps:stretch
+      - image: circleci/buildpack-deps:stretch
     steps:
       - attach_workspace:
           at: /tmp/workspace
