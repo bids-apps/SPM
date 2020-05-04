@@ -4,6 +4,8 @@ jobs:
     docker:
       - image: circleci/python:3.7
     steps:
+      - run:
+          command: echo $USER
       - checkout
       - run:
           name: Get Data and Extract
