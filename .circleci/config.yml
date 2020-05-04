@@ -6,13 +6,14 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Get Data and Extract
+          name: Get test data
           command: |
             if [[ ! -d ~/data/ds114_test1 ]]; then
               wget -c -O ${HOME}/ds114_test1.tar "https://files.osf.io/v1/resources/9q7dv/providers/osfstorage/57e54a326c613b01d7d3ed90" && \
               mkdir -p ${HOME}/data && tar xf ${HOME}/ds114_test1.tar -C ${HOME}/data
             fi
       - run:
+          name: Build Docker image
           command: |
             if [[ -e ~/docker/image.tar ]]; then
               docker load -i ~/docker/image.tar;
@@ -33,12 +34,19 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp/workspace
+      - run:
+          command: |
+            docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v /tmp/workspace/data/ds114_test1:/bids_dataset -v ${HOME}/outputs:/outputs bids/${CIRCLE_PROJECT_REPONAME,,} /bids_dataset /outputs participant --participant_label 01
+            docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v /tmp/workspace/data/ds114_test1:/bids_dataset -v ${HOME}/outputs:/outputs bids/${CIRCLE_PROJECT_REPONAME,,} /bids_dataset /outputs participant --participant_label 02
+            docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v /tmp/workspace/data/ds114_test1:/bids_dataset -v ${HOME}/outputs:/outputs bids/${CIRCLE_PROJECT_REPONAME,,} /bids_dataset /outputs group
   deploy:
     docker:
       - image: circleci/buildpack-deps:stretch
     steps:
       - attach_workspace:
           at: /tmp/workspace
+      - setup_remote_docker
+      - run: docker load -i /tmp/workspace/docker/image.tar
 workflows:
   version: 2
   build-test-deploy:
