@@ -15,13 +15,10 @@ jobs:
       - run:
           name: Build Docker image
           command: |
-            if [[ -e ~/docker/image.tar ]]; then
-              docker load -i ~/docker/image.tar;
-            fi
             git describe --tags --always > version
-            docker build -t bids/${CIRCLE_PROJECT_REPONAME,,}:latest .
-            mkdir -p ~/docker
-            docker save "bids/${CIRCLE_PROJECT_REPONAME,,}:latest" > ~/docker/image.tar
+            docker build -t bids/${CIRCLE_PROJECT_REPONAME,,} .
+            mkdir -p ${HOME}/docker
+            docker save "bids/${CIRCLE_PROJECT_REPONAME,,}" > ~/docker/image.tar
             mkdir -p ${HOME}/outputs
       - persist_to_workspace:
           root: /home/circleci
@@ -36,6 +33,7 @@ jobs:
           at: /tmp/workspace
       - run:
           command: |
+            docker load -i /tmp/workspace/docker/image.tar
             docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v /tmp/workspace/data/ds114_test1:/bids_dataset -v ${HOME}/outputs:/outputs bids/${CIRCLE_PROJECT_REPONAME,,} /bids_dataset /outputs participant --participant_label 01
             docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v /tmp/workspace/data/ds114_test1:/bids_dataset -v ${HOME}/outputs:/outputs bids/${CIRCLE_PROJECT_REPONAME,,} /bids_dataset /outputs participant --participant_label 02
             docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v /tmp/workspace/data/ds114_test1:/bids_dataset -v ${HOME}/outputs:/outputs bids/${CIRCLE_PROJECT_REPONAME,,} /bids_dataset /outputs group
@@ -47,6 +45,11 @@ jobs:
           at: /tmp/workspace
       - setup_remote_docker
       - run: docker load -i /tmp/workspace/docker/image.tar
+      - run:
+          command: |
+            if [[ -n "${DOCKER_PASS}" ]]; then
+              docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
+            fi
 workflows:
   version: 2
   build-test-deploy:
@@ -57,7 +60,7 @@ workflows:
             - build
       - deploy:
           requires:
-            - build
+            - test
           filters:
             tags:
               only: /.*/
