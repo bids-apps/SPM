@@ -14,8 +14,8 @@ ENV MATLAB_VERSION R2019b
 ENV MATLAB_UPDATE 5
 RUN mkdir /opt/mcr_install && \
     mkdir /opt/mcr && \
-    wget -P /opt/mcr_install https://ssd.mathworks.com/supportfiles/downloads/${MATLAB_VERSION}/Release/{MATLAB_UPDATE}/deployment_files/installer/complete/glnxa64/MATLAB_Runtime_${MATLAB_VERSION}_Update_{MATLAB_UPDATE}_glnxa64.zip && \
-    unzip -q /opt/MATLAB_Runtime_${MATLAB_VERSION}_Update_{MATLAB_UPDATE}_glnxa64.zip -d /opt/mcr_install && \
+    wget -P /opt/mcr_install https://ssd.mathworks.com/supportfiles/downloads/${MATLAB_VERSION}/Release/${MATLAB_UPDATE}/deployment_files/installer/complete/glnxa64/MATLAB_Runtime_${MATLAB_VERSION}_Update_${MATLAB_UPDATE}_glnxa64.zip && \
+    unzip -q /opt/MATLAB_Runtime_${MATLAB_VERSION}_Update_${MATLAB_UPDATE}_glnxa64.zip -d /opt/mcr_install && \
     /opt/mcr_install/install -destinationFolder /opt/mcr -agreeToLicense yes -mode silent && \
     rm -rf /opt/mcr_install /tmp/*
 
