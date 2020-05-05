@@ -47,6 +47,7 @@ jobs:
       - run: docker load -i /tmp/workspace/docker/image.tar
       - run:
           command: |
+            echo 'export CIRCLE_TAG="v0.0.20"' >> $BASH_ENV
             if [[ -n "${CIRCLE_TAG}" ]]; then
               docker login --username ${DOCKER_USER} --password ${DOCKER_PASS}
               docker push bids/${CIRCLE_PROJECT_REPONAME,,}:latest
