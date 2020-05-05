@@ -49,7 +49,7 @@ $ docker build -t <yourhandle>/spm12 .
 
 ### Configuration file
 
-The configuration file is a MATLAB script detailing the analysis pipeline to be executed. Two struct variables, ```BIDS``` and ```BIDS_App``` are available from within the script, containing details from the command line and the BIDS-formatted dataset. In particular, the ```BIDS``` structure can be queried using the ```spm_BIDS()``` function. The default configuration files for first and second level analyses are ```pipeline_participant.m``` and ```pipeline_group.m```. A template for a single configuration file for all levels could be as follow:
+The configuration file is a MATLAB script detailing the analysis pipeline to be executed. Two struct variables, ```BIDS``` and ```BIDS_App``` are available from within the script, containing details from the command line and the BIDS-formatted dataset. In particular, the ```BIDS``` structure can be queried using the ```spm_BIDS()``` function (see [this](https://en.wikibooks.org/wiki/SPM/BIDS)). The default configuration files for first and second level analyses are ```pipeline_participant.m``` and ```pipeline_group.m```. A template for a single configuration file for all levels could be as follow:
 
 ```
 if strcmp(BIDS_App.level,'participant')
