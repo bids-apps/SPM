@@ -224,7 +224,7 @@ if strncmp('participant',BIDS_App.level,11) && ~isempty(BIDS_App.participants)
         %------------------------------------------------------------------
         for s=1:numel(BIDS_App.participants)
             %
-            % Datasets may managed data with symlinks (e.g. datalad/git-annex)
+            % Datasets may be managed with symlinks (e.g. datalad/git-annex)
             %
             % Prior to Matlab 2020, copyfile() on Linux will not dereference
             % the symlink, which can easily break if the target is relative.
