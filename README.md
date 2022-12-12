@@ -12,13 +12,13 @@ Extensive documentation can be found in the [SPM manual](http://www.fil.ion.ucl.
 
 To launch an instance of the container and analyse some data in BIDS format, type:
 
-```
+```bash
 $ docker run bids/spm bids_dir output_dir level [--participant_label PARTICIPANT_LABEL [PARTICIPANT_LABEL ...]] [--config CFG_FILE]
 ```
 
 For example, to run an analysis in ```participant``` level mode, type:
 
-```
+```bash
 $ docker run -ti --rm \
   -v /tmp:/tmp \
   -v /var/tmp:/var/tmp \
@@ -30,7 +30,7 @@ $ docker run -ti --rm \
 
 For example, to run an analysis in ```group``` level mode with a user-defined pipeline, type:
 
-```
+```bash
 $ docker run -ti --rm \
   -v /tmp:/tmp \
   -v /var/tmp:/var/tmp \
@@ -43,7 +43,7 @@ $ docker run -ti --rm \
 
 To build the container, type:
 
-```
+```bash
 $ docker build -t <yourhandle>/spm12 .
 ```
 
@@ -51,7 +51,7 @@ $ docker build -t <yourhandle>/spm12 .
 
 The configuration file is a MATLAB script detailing the analysis pipeline to be executed. Two struct variables, ```BIDS``` and ```BIDS_App``` are available from within the script, containing details from the command line and the BIDS-formatted dataset. In particular, the ```BIDS``` structure can be queried using the ```spm_BIDS()``` function (see [this](https://en.wikibooks.org/wiki/SPM/BIDS)). The default configuration files for first and second level analyses are ```pipeline_participant.m``` and ```pipeline_group.m```. A template for a single configuration file for all levels could be as follow:
 
-```
+```bash
 if strcmp(BIDS_App.level,'participant')
     % First level analysis
     
