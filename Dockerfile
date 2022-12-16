@@ -39,7 +39,7 @@ COPY run.sh spm_BIDS_App.m pipeline_participant.m pipeline_group.m /opt/spm${SPM
 RUN chmod +x /opt/spm${SPM_VERSION}/run.sh
 RUN chmod +x /opt/spm${SPM_VERSION}/spm${SPM_VERSION}
 RUN chmod +x /opt/spm${SPM_VERSION}/run_spm12.sh
-COPY version /version
+COPY version /opt/spm${SPM_VERSION}/version
 
 ENTRYPOINT ["/opt/spm12/run.sh"]
 #ENTRYPOINT ["/opt/spm12/spm12","script","/opt/spm12/spm_BIDS_App.m"]
