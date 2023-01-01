@@ -1,6 +1,6 @@
 FROM bids/base_validator
 
-MAINTAINER Guillaume Flandin <g.flandin@ucl.ac.uk>
+LABEL Guillaume Flandin <g.flandin@ucl.ac.uk>
 
 # Update system
 RUN apt-get -qq update && apt-get -qq install -y \
