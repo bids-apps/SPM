@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     machine:
-      image: circleci/classic:latest
+      image: ubuntu-2204:2022.10.2
     steps:
       - checkout
       - run:
@@ -27,7 +27,7 @@ jobs:
             - docker/image.tar
   test:
     machine:
-      image: circleci/classic:latest
+      image: ubuntu-2204:2022.10.2
     steps:
       - attach_workspace:
           at: /tmp/workspace
@@ -67,3 +67,5 @@ workflows:
           filters:
             tags:
               only: /.*/
+
+# VS Code Extension Version: 1.5.1
