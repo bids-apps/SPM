@@ -219,7 +219,7 @@ if strncmp('participant',BIDS_App.level,11) && ~isempty(BIDS_App.participants)
         %    error('Output temporary directory could not be created.');
         %end
         %atExit = onCleanup(@() rmdir(BIDS_App.tmpdir,'s'));
-        
+
         %-Copy participants' data
         %------------------------------------------------------------------
         for s=1:numel(BIDS_App.participants)
@@ -232,7 +232,7 @@ if strncmp('participant',BIDS_App.level,11) && ~isempty(BIDS_App.participants)
             end
         end
     end
-    
+
     %-Uncompress gzipped NIfTI files
     %----------------------------------------------------------------------
     for s=1:numel(BIDS_App.participants)
@@ -246,7 +246,7 @@ if strncmp('participant',BIDS_App.level,11) && ~isempty(BIDS_App.participants)
             end
         end
     end
-    
+
     %-Update BIDS structure to point to new local files
     %----------------------------------------------------------------------
     BIDS = spm_changepath(BIDS,BIDS.dir,BIDS_App.tmpdir,false);
@@ -269,9 +269,9 @@ end
 %==========================================================================
 
 if strncmp('participant',BIDS_App.level,11)
-    
+
     BIDS_ORIG = BIDS;
-    
+
     for s=1:numel(BIDS_App.participants)
         BIDS = BIDS_ORIG;
         idx = ismember({BIDS.subjects.name},BIDS_App.participants{s});
@@ -285,7 +285,7 @@ if strncmp('participant',BIDS_App.level,11)
         spm('FnBanner',['BIDS ' upper(BIDS_App.level) ' ' BIDS_App.participants{s}]);
         spm('Run',BIDS_App.config);
     end
-    
+
     % make sure relevant files are stored in BIDS_App.outdir
 end
 
@@ -294,10 +294,10 @@ end
 %==========================================================================
 
 if strncmp('group',BIDS_App.level,5)
-    
+
     spm('FnBanner',['BIDS ' upper(BIDS_App.level)]);
     spm('Run',BIDS_App.config);
-    
+
     % make sure relevant files are stored in BIDS_App.outdir
 end
 

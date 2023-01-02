@@ -54,13 +54,13 @@ The configuration file is a MATLAB script detailing the analysis pipeline to be 
 ```bash
 if strcmp(BIDS_App.level,'participant')
     % First level analysis
-    
+
     % Get T1-weighted image filename for given subject:
     % a = spm_BIDS(BIDS,'data', 'modality','anat', 'type','T1w');
     % ...
 else
     % Second level analysis
-    
+
     % The name of the directory containing first level outputs is stored in:
     % BIDS_App.outdir
     % ...
@@ -83,6 +83,6 @@ Please refer to:
   title = {Statistical Parametric Mapping: The Analysis of Functional Brain Images},
   publisher = {Academic Press},
   year = {2007},
-  url = {http://store.elsevier.com/product.jsp?isbn=9780123725608} 
+  url = {http://store.elsevier.com/product.jsp?isbn=9780123725608}
 }
 ```
