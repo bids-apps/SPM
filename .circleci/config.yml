@@ -1,12 +1,15 @@
 ---
-version: 2
+version: 2.1
 jobs:
+
+
   build:
 
     machine:
       image: ubuntu-2204:2022.10.2
 
     steps:
+
     - checkout
 
     - restore_cache:
@@ -44,9 +47,11 @@ jobs:
         - data/ds114_test1
         - docker/image.tar
 
+
   test:
     machine:
       image: ubuntu-2204:2022.10.2
+
     steps:
 
     - attach_workspace:
@@ -85,9 +90,13 @@ jobs:
               bids/${CIRCLE_PROJECT_REPONAME,,} \
                 /bids_dataset \
                 /outputs group
+
+
   deploy:
-    docker:
-    - image: circleci/buildpack-deps:stretch
+
+    machine:
+      image: ubuntu-2204:2022.10.2
+
     steps:
     - attach_workspace:
         at: /tmp/workspace
@@ -103,7 +112,6 @@ jobs:
             docker push bids/${CIRCLE_PROJECT_REPONAME,,}:${CIRCLE_TAG}
           fi
 workflows:
-  version: 2
   build-test-deploy:
     jobs:
     - build
