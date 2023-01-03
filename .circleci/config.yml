@@ -39,17 +39,6 @@ jobs:
     - run: mkdir -p ${HOME}/outputs
 
     - run:
-        name: print version
-        command: |
-          docker load -i /tmp/workspace/docker/image.tar
-          docker run -ti --rm --read-only \
-            -v /tmp/workspace/data/ds114_test1:/bids_dataset \
-            -v ${HOME}/outputs:/outputs \
-              bids/${CIRCLE_PROJECT_REPONAME,,} \
-                /bids_dataset \
-                /outputs participant --version
-
-    - run:
         name: run all participants
         command: |
           docker run -ti --rm --read-only \
