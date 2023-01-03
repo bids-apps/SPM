@@ -41,7 +41,7 @@ jobs:
     - run:
         name: run all participants
         command: |
-          docker run -ti --rm --read-only \
+          docker run -ti --rm \
             -v /tmp/workspace/data/ds114_test1:/bids_dataset \
             -v ${HOME}/outputs:/outputs \
               bids/${CIRCLE_PROJECT_REPONAME,,} \
@@ -50,7 +50,7 @@ jobs:
     - run:
         name: run a single participant
         command: |
-          docker run -ti --rm --read-only \
+          docker run -ti --rm \
             -v /tmp/workspace/data/ds114_test1:/bids_dataset \
             -v ${HOME}/outputs:/outputs \
               bids/${CIRCLE_PROJECT_REPONAME,,} \
@@ -60,7 +60,7 @@ jobs:
     - run:
         name: run group level
         command: |
-          docker run -ti --rm --read-only \
+          docker run -ti --rm \
             -v /tmp/workspace/data/ds114_test1:/bids_dataset \
             -v ${HOME}/outputs:/outputs \
               bids/${CIRCLE_PROJECT_REPONAME,,} \
