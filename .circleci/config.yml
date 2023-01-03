@@ -30,32 +30,45 @@ jobs:
     machine:
       image: ubuntu-2204:2022.10.2
     steps:
+
     - attach_workspace:
         at: /tmp/workspace
     - run:
         command: |
           docker load -i /tmp/workspace/docker/image.tar
+
+    - run:
+        name: print version
+        command: |
+          docker load -i /tmp/workspace/docker/image.tar
           docker run -ti --rm --read-only \
-            -v /tmp:/tmp \
-            -v /var/tmp:/var/tmp \
+            -v /tmp/workspace/data/ds114_test1:/bids_dataset \
+            -v ${HOME}/outputs1:/outputs \
+              bids/${CIRCLE_PROJECT_REPONAME,,} \
+                /bids_dataset \
+                /outputs participant --version
+
+    - run:
+        name: print version
+        command: |
+          docker run -ti --rm --read-only \
             -v /tmp/workspace/data/ds114_test1:/bids_dataset \
             -v ${HOME}/outputs:/outputs \
               bids/${CIRCLE_PROJECT_REPONAME,,} \
                 /bids_dataset \
-                /outputs participant \
-                --participant_label 01
+                /outputs participant
+    - run:
+        command: |
           docker run -ti --rm --read-only \
-            -v /tmp:/tmp \
-            -v /var/tmp:/var/tmp \
             -v /tmp/workspace/data/ds114_test1:/bids_dataset \
             -v ${HOME}/outputs:/outputs \
               bids/${CIRCLE_PROJECT_REPONAME,,} \
                 /bids_dataset \
                 /outputs participant \
                 --participant_label 02
+    - run:
+        command: |
           docker run -ti --rm --read-only \
-            -v /tmp:/tmp \
-            -v /var/tmp:/var/tmp \
             -v /tmp/workspace/data/ds114_test1:/bids_dataset \
             -v ${HOME}/outputs:/outputs \
               bids/${CIRCLE_PROJECT_REPONAME,,} \
@@ -67,7 +80,7 @@ jobs:
     steps:
     - attach_workspace:
         at: /tmp/workspace
-    - setup_remote_docker
+
     - run: docker load -i /tmp/workspace/docker/image.tar
     - run:
         name: push to dockerhub
@@ -92,5 +105,4 @@ workflows:
         filters:
           tags:
             only: /.*/
-
 # VS Code Extension Version: 1.5.1

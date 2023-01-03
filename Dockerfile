@@ -1,14 +1,15 @@
 FROM bids/base_validator
 
-LABEL Guillaume Flandin <g.flandin@ucl.ac.uk>
+# maintainer: Guillaume Flandin <g.flandin@ucl.ac.uk>
 
 ARG DEBIAN_FRONTEND="noninteractive"
 
 # Update system
-RUN apt-get update -qq  && apt-get install -q -y \
-    unzip \
-    xorg \
-    wget && \
+RUN apt-get update -qq  && \
+    apt-get install --no-install-recommends -q -y \
+        unzip \
+        xorg \
+        wget && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Install MATLAB MCR
@@ -16,7 +17,7 @@ ENV MATLAB_VERSION R2019b
 ENV MATLAB_UPDATE 5
 RUN mkdir /opt/mcr_install && \
     mkdir /opt/mcr && \
-    wget -P /opt/mcr_install https://ssd.mathworks.com/supportfiles/downloads/${MATLAB_VERSION}/Release/${MATLAB_UPDATE}/deployment_files/installer/complete/glnxa64/MATLAB_Runtime_${MATLAB_VERSION}_Update_${MATLAB_UPDATE}_glnxa64.zip && \
+    wget --progress=dot:giga -P /opt/mcr_install https://ssd.mathworks.com/supportfiles/downloads/${MATLAB_VERSION}/Release/${MATLAB_UPDATE}/deployment_files/installer/complete/glnxa64/MATLAB_Runtime_${MATLAB_VERSION}_Update_${MATLAB_UPDATE}_glnxa64.zip && \
     unzip -q /opt/mcr_install/MATLAB_Runtime_${MATLAB_VERSION}_Update_${MATLAB_UPDATE}_glnxa64.zip -d /opt/mcr_install && \
     /opt/mcr_install/install -destinationFolder /opt/mcr -agreeToLicense yes -mode silent && \
     rm -rf /opt/mcr_install /tmp/*
@@ -31,16 +32,16 @@ ENV SPM_VERSION 12
 ENV SPM_REVISION r7771
 ENV SPM_DIR /opt/spm${SPM_VERSION}
 ENV SPM_EXEC ${SPM_DIR}/spm${SPM_VERSION}
-RUN wget -P /opt https://www.fil.ion.ucl.ac.uk/spm/download/restricted/bids/spm${SPM_VERSION}_${SPM_REVISION}_Linux_${MATLAB_VERSION}.zip && \
+RUN wget --progress=dot:giga -P /opt https://www.fil.ion.ucl.ac.uk/spm/download/restricted/bids/spm${SPM_VERSION}_${SPM_REVISION}_Linux_${MATLAB_VERSION}.zip && \
     unzip -q /opt/spm${SPM_VERSION}_${SPM_REVISION}_Linux_${MATLAB_VERSION}.zip -d /opt && \
     rm -f /opt/spm${SPM_VERSION}_${SPM_REVISION}_Linux_${MATLAB_VERSION}.zip && \
     ${SPM_EXEC} function exit
 
 # Configure SPM BIDS App entry point
 COPY run.sh spm_BIDS_App.m pipeline_participant.m pipeline_group.m /opt/spm${SPM_VERSION}/
-RUN chmod +x /opt/spm${SPM_VERSION}/run.sh
-RUN chmod +x /opt/spm${SPM_VERSION}/spm${SPM_VERSION}
-RUN chmod +x /opt/spm${SPM_VERSION}/run_spm12.sh
+RUN chmod +x /opt/spm${SPM_VERSION}/run.sh && \
+    chmod +x /opt/spm${SPM_VERSION}/spm${SPM_VERSION} && \
+    chmod +x /opt/spm${SPM_VERSION}/run_spm12.sh
 COPY version /version
 
 ENTRYPOINT ["/opt/spm12/run.sh"]
