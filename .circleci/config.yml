@@ -2,66 +2,45 @@
 version: 2.1
 jobs:
 
-
   build:
-
     machine:
       image: ubuntu-2204:2022.10.2
-
     steps:
-
     - checkout
-
     - restore_cache:
         keys:
         - my_cache
-
     - run:
         name: Get test data
         command: |
-          if [[ ! -d ${HOME}/data/ds114_test1 ]]; then
-            wget -c -O ${HOME}/ds114_test1.tar "https://osf.io/download/zerfq/" && \
-            mkdir -p ${HOME}/data && \
-            tar xf ${HOME}/ds114_test1.tar -C ${HOME}/data
-          fi
+          wget https://raw.githubusercontent.com/bids-apps/maintenance-tools/main/circleci/get_ds114_test1.sh
+          bash get_ds114_test1.sh 
     - run:
         name: Build Docker image
         command: |
-          if [[ -e ${HOME}/docker/image.tar ]]; then
-            docker load -i ${HOME}/docker/image.tar
-          fi
-          git describe --tags --always > version
-          docker build -t bids/${CIRCLE_PROJECT_REPONAME,,} .
-          mkdir -p ${HOME}/docker
-          docker save "bids/${CIRCLE_PROJECT_REPONAME,,}" > ${HOME}/docker/image.tar
-
+          wget https://raw.githubusercontent.com/bids-apps/maintenance-tools/main/circleci/build_docker.sh
+          bash build_docker.sh    
     - save_cache:
         key: my_cache
         paths:
         - ~/docker
         - ~/data
-
     - persist_to_workspace:
         root: /home/circleci
         paths:
         - data/ds114_test1
         - docker/image.tar
 
-
   test:
     machine:
       image: ubuntu-2204:2022.10.2
-
     steps:
-
     - attach_workspace:
         at: /tmp/workspace
     - run:
         command: |
           docker load -i /tmp/workspace/docker/image.tar
-
     - run: mkdir -p ${HOME}/outputs
-
     - run:
         name: run all participants
         command: |
@@ -91,36 +70,18 @@ jobs:
                 /bids_dataset \
                 /outputs group
 
-
   deploy:
-
     machine:
       image: ubuntu-2204:2022.10.2
-
     steps:
     - attach_workspace:
         at: /tmp/workspace
-
     - run: docker load -i /tmp/workspace/docker/image.tar
     - run:
         name: push to dockerhub
         command: |
-          if [[ -n "$DOCKER_PASS" ]]; then
-            repo_name=`echo  ${CIRCLE_PROJECT_REPONAME} | tr '[:upper:]' '[:lower:]'`
-            echo "${DOCKER_PASS}" | docker login -u ${DOCKER_USER} --password-stdin
-            echo "Pushing to DockerHub bids/${repo_name}:unstable"
-            docker tag bids/${repo_name} bids/${repo_name}:unstable
-            docker push bids/${repo_name}:unstable
-            if [[ -n "${CIRCLE_TAG}" ]]; then
-              echo "Pushing to DockerHub bids/${repo_name}:${CIRCLE_TAG}"
-              docker push bids/${repo_name}:latest
-              docker tag bids/${repo_name} bids/${repo_name}:${CIRCLE_TAG}
-              docker push bids/${repo_name}:${CIRCLE_TAG};
-            fi
-          else
-            echo "No DOCKER_PASS, skipping push to DockerHub"
-          fi
-
+          wget https://raw.githubusercontent.com/bids-apps/maintenance-tools/main/circleci/push_docker.sh
+          bash push_docker.sh  
 
 workflows:
   build-test-deploy:
