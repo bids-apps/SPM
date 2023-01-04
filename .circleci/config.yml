@@ -106,14 +106,15 @@ jobs:
         name: push to dockerhub
         command: |
           if [[ -n "$DOCKER_PASS" ]]; then
+            repo_name=`echo  ${CIRCLE_PROJECT_REPONAME} | tr '[:upper:]' '[:lower:]'`
             echo "${DOCKER_PASS}" | docker login -u ${DOCKER_USER} --password-stdin && \
-            echo "Pushing to DockerHub bids/${CIRCLE_PROJECT_REPONAME}:unstable" && \
-            docker push bids/${CIRCLE_PROJECT_REPONAME}:unstable
+            echo "Pushing to DockerHub bids/${repo_name}:unstable" && \
+            docker push bids/${repo_name}:unstable
             if [[ -n "${CIRCLE_TAG}" ]]; then
-              echo "Pushing to DockerHub bids/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}" && \
-              docker push bids/${CIRCLE_PROJECT_REPONAME}:latest
-              docker tag bids/${CIRCLE_PROJECT_REPONAME} bids/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}
-              docker push bids/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG};
+              echo "Pushing to DockerHub bids/${repo_name}:${CIRCLE_TAG}" && \
+              docker push bids/${repo_name}:latest
+              docker tag bids/${repo_name} bids/${repo_name}:${CIRCLE_TAG}
+              docker push bids/${repo_name}:${CIRCLE_TAG};
             fi
           fi
 
