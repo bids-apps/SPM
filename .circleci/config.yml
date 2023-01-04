@@ -19,7 +19,7 @@ jobs:
     - run:
         name: Get test data
         command: |
-          if [[ ! -d ${HOME}/data/ds114_test1 ]] then
+          if [[ ! -d ${HOME}/data/ds114_test1 ]]; then
             wget -c -O ${HOME}/ds114_test1.tar "https://osf.io/download/zerfq/" && \
             mkdir -p ${HOME}/data && \
             tar xf ${HOME}/ds114_test1.tar -C ${HOME}/data
@@ -27,8 +27,8 @@ jobs:
     - run:
         name: Build Docker image
         command: |
-          if [[ -e ${HOME}/docker/image.tar ]]; \
-            then docker load -i ${HOME}/docker/image.tar;
+          if [[ -e ${HOME}/docker/image.tar ]]; then
+            docker load -i ${HOME}/docker/image.tar
           fi
           git describe --tags --always > version
           docker build -t bids/${CIRCLE_PROJECT_REPONAME,,} .
