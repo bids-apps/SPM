@@ -19,7 +19,7 @@ jobs:
     - run:
         name: Get test data
         command: |
-          if [[ ! -d ~/data/ds114_test1 ]]; then
+          if [[ ! -d ${HOME}/data/ds114_test1 ]]; then
             wget -c -O ${HOME}/ds114_test1.tar "https://osf.io/download/zerfq/" && \
             mkdir -p ${HOME}/data && \
             tar xf ${HOME}/ds114_test1.tar -C ${HOME}/data
@@ -27,13 +27,13 @@ jobs:
     - run:
         name: Build Docker image
         command: |
-          if [[ -e ~/docker/image.tar ]]; \
-            then docker load -i ~/docker/image.tar;
+          if [[ -e ${HOME}/docker/image.tar ]]; \
+            then docker load -i ${HOME}/docker/image.tar;
           fi
           git describe --tags --always > version
           docker build -t bids/${CIRCLE_PROJECT_REPONAME,,} .
           mkdir -p ${HOME}/docker
-          docker save "bids/${CIRCLE_PROJECT_REPONAME,,}" > ~/docker/image.tar
+          docker save "bids/${CIRCLE_PROJECT_REPONAME,,}" > ${HOME}/docker/image.tar
 
     - save_cache:
         key: my_cache
@@ -105,12 +105,17 @@ jobs:
     - run:
         name: push to dockerhub
         command: |
-          docker login --username ${DOCKER_USER} --password ${DOCKER_PASS}
-          docker push bids/${CIRCLE_PROJECT_REPONAME,,}:latest
-          if [[ -n "${CIRCLE_TAG}" ]]; then
-            docker tag bids/${CIRCLE_PROJECT_REPONAME,,} bids/${CIRCLE_PROJECT_REPONAME,,}:${CIRCLE_TAG}
-            docker push bids/${CIRCLE_PROJECT_REPONAME,,}:${CIRCLE_TAG}
+          if [[ -n "$DOCKER_PASS" ]]; then
+            echo "${DOCKER_PASS}" | docker login -u ${DOCKER_USER} --password-stdin && \
+            docker push bids/${CIRCLE_PROJECT_REPONAME}:unstable
+            if [[ -n "${CIRCLE_TAG}" ]]; then
+              docker push bids/${CIRCLE_PROJECT_REPONAME}:latest
+              docker tag bids/${CIRCLE_PROJECT_REPONAME} bids/${CIRCLE_PROJECT_REPONAME}:$CIRCLE_TAG
+              docker push bids/${CIRCLE_PROJECT_REPONAME}:$CIRCLE_TAG;
+            fi
           fi
+
+
 workflows:
   build-test-deploy:
     jobs:
