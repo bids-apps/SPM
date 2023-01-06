@@ -1,99 +1,97 @@
 ---
 version: 2.1
 jobs:
-
   build:
     machine:
       image: ubuntu-2204:2022.10.2
     steps:
-    - checkout
-    - restore_cache:
-        keys:
-        - my_cache
-    - run:
-        name: Get test data
-        command: |
-          wget https://raw.githubusercontent.com/bids-apps/maintenance-tools/main/circleci/get_ds114_test1.sh
-          bash get_ds114_test1.sh 
-    - run:
-        name: Build Docker image
-        command: |
-          wget https://raw.githubusercontent.com/bids-apps/maintenance-tools/main/circleci/build_docker.sh
-          bash build_docker.sh    
-    - save_cache:
-        key: my_cache
-        paths:
-        - ~/docker
-        - ~/data
-    - persist_to_workspace:
-        root: /home/circleci
-        paths:
-        - data/ds114_test1
-        - docker/image.tar
+      - checkout
+      - restore_cache:
+          keys:
+            - my_cache
+      - run:
+          name: Get test data
+          command: |
+            wget https://raw.githubusercontent.com/bids-apps/maintenance-tools/main/circleci/get_ds114_test1.sh
+            bash get_ds114_test1.sh
+      - run:
+          name: Build Docker image
+          command: |
+            wget https://raw.githubusercontent.com/bids-apps/maintenance-tools/main/circleci/build_docker.sh
+            bash build_docker.sh
+      - save_cache:
+          key: my_cache
+          paths:
+            - ~/docker
+            - ~/data
+      - persist_to_workspace:
+          root: /home/circleci
+          paths:
+            - data/ds114_test1
+            - docker/image.tar
 
   test:
     machine:
       image: ubuntu-2204:2022.10.2
     steps:
-    - attach_workspace:
-        at: /tmp/workspace
-    - run:
-        command: |
-          docker load -i /tmp/workspace/docker/image.tar
-    - run: mkdir -p ${HOME}/outputs
-    - run:
-        name: run all participants
-        command: |
-          docker run -ti --rm \
-            -v /tmp/workspace/data/ds114_test1:/bids_dataset \
-            -v ${HOME}/outputs:/outputs \
-              bids/${CIRCLE_PROJECT_REPONAME,,} \
-                /bids_dataset \
-                /outputs participant
-    - run:
-        name: run a single participant
-        command: |
-          docker run -ti --rm \
-            -v /tmp/workspace/data/ds114_test1:/bids_dataset \
-            -v ${HOME}/outputs:/outputs \
-              bids/${CIRCLE_PROJECT_REPONAME,,} \
-                /bids_dataset \
-                /outputs participant \
-                --participant_label 02
-    - run:
-        name: run group level
-        command: |
-          docker run -ti --rm \
-            -v /tmp/workspace/data/ds114_test1:/bids_dataset \
-            -v ${HOME}/outputs:/outputs \
-              bids/${CIRCLE_PROJECT_REPONAME,,} \
-                /bids_dataset \
-                /outputs group
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          command: |
+            docker load -i /tmp/workspace/docker/image.tar
+      - run: mkdir -p ${HOME}/outputs
+      - run:
+          name: run all participants
+          command: |
+            docker run -ti --rm \
+              -v /tmp/workspace/data/ds114_test1:/bids_dataset \
+              -v ${HOME}/outputs:/outputs \
+                bids/${CIRCLE_PROJECT_REPONAME,,} \
+                  /bids_dataset \
+                  /outputs participant
+      - run:
+          name: run a single participant
+          command: |
+            docker run -ti --rm \
+              -v /tmp/workspace/data/ds114_test1:/bids_dataset \
+              -v ${HOME}/outputs:/outputs \
+                bids/${CIRCLE_PROJECT_REPONAME,,} \
+                  /bids_dataset \
+                  /outputs participant \
+                  --participant_label 02
+      - run:
+          name: run group level
+          command: |
+            docker run -ti --rm \
+              -v /tmp/workspace/data/ds114_test1:/bids_dataset \
+              -v ${HOME}/outputs:/outputs \
+                bids/${CIRCLE_PROJECT_REPONAME,,} \
+                  /bids_dataset \
+                  /outputs group
 
   deploy:
     machine:
       image: ubuntu-2204:2022.10.2
     steps:
-    - attach_workspace:
-        at: /tmp/workspace
-    - run: docker load -i /tmp/workspace/docker/image.tar
-    - run:
-        name: push to dockerhub
-        command: |
-          wget https://raw.githubusercontent.com/bids-apps/maintenance-tools/main/circleci/push_docker.sh
-          bash push_docker.sh  
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: docker load -i /tmp/workspace/docker/image.tar
+      - run:
+          name: push to dockerhub
+          command: |
+            wget https://raw.githubusercontent.com/bids-apps/maintenance-tools/main/circleci/push_docker.sh
+            bash push_docker.sh
 
 workflows:
   build-test-deploy:
     jobs:
-    - build
-    - test:
-        requires:
-        - build
-    - deploy:
-        requires:
-        - test
-        filters:
-          tags:
-            only: /.*/
-# VS Code Extension Version: 1.5.1
+      - build
+      - test:
+          requires:
+            - build
+      - deploy:
+          requires:
+            - test
+          filters:
+            tags:
+              only: /.*/
