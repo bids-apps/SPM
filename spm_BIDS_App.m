@@ -260,7 +260,13 @@ BIDS.subjects = BIDS.subjects(idx);
 if ~isempty(BIDS.participants)
     idx = ismember(BIDS.participants.participant_id,BIDS_App.participants);
     for fn=fieldnames(BIDS.participants)'
-        BIDS.participants.(char(fn)) = BIDS.participants.(char(fn))(idx);
+        replace = BIDS.participants.(char(fn));
+        % BIDS.participants.meta is 1x1. other fields are 1xN
+        if(length(replace) < length(idx))
+           warning('%s: idx len %d > number of values %d; ignored', char(fn), length(idx), length(replace))
+           continue
+        end
+        BIDS.participants.(char(fn)) = replace(idx);
     end
 end
 
