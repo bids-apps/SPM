@@ -1,6 +1,6 @@
 function BIDS = narrow_participants(BIDS, labels)
 % NARROW_PARTICIPANTS - restrict BIDS struct to only requested labels
-%
+% 
 
 % nothing to do if no labels to change?
 if isempty(labels)
