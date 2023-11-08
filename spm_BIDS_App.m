@@ -265,7 +265,7 @@ if ~isempty(BIDS.participants)
         if(length(replace) < length(idx))
            warning('%s: idx len %d > number of values %d; ignored', char(fn), length(idx), length(replace))
            continue
-        end
+        end 
         BIDS.participants.(char(fn)) = replace(idx);
     end
 end
