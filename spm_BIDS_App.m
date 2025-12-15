@@ -201,6 +201,9 @@ BIDS_App.participants = cellfun(@(s) ['sub-' s], ...
 spm('defaults','fmri');
 spm_jobman('initcfg');
 
+% if we used  --participant_label PARTICIPANT_LABEL [PARTICIPANT_LABEL ...]
+BIDS = narrow_participants(BIDS, BIDS_App.participants);
+
 %==========================================================================
 %-(Temporary) Copy of input data and uncompress image files
 %==========================================================================
@@ -251,17 +254,6 @@ if strncmp('participant',BIDS_App.level,11) && ~isempty(BIDS_App.participants)
     %----------------------------------------------------------------------
     BIDS = spm_changepath(BIDS,BIDS.dir,BIDS_App.tmpdir,false);
     BIDS = spm_changepath(BIDS,'.nii.gz','.nii',false);
-end
-
-%-Simplify BIDS structure to only contain participants under study
-%--------------------------------------------------------------------------
-idx = ismember({BIDS.subjects.name},BIDS_App.participants);
-BIDS.subjects = BIDS.subjects(idx);
-if ~isempty(BIDS.participants)
-    idx = ismember(BIDS.participants.participant_id,BIDS_App.participants);
-    for fn=fieldnames(BIDS.participants)'
-        BIDS.participants.(char(fn)) = BIDS.participants.(char(fn))(idx);
-    end
 end
 
 %==========================================================================
