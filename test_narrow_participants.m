@@ -19,7 +19,7 @@ try
   % narrowing works
   BIDS_narrow = narrow_participants(BIDS, {'sub-a'})
   assert(length(BIDS_narrow.participants.participant_id) == 2)
-  
+
   % no change on empty
   BIDS_nochange = narrow_participants(BIDS, {}); % TODO: {{}}?
   assert(length(BIDS_nochange.participants.participant_id) == 4)
