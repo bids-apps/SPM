@@ -38,7 +38,7 @@ RUN wget --progress=dot:giga -P /opt https://www.fil.ion.ucl.ac.uk/spm/download/
     ${SPM_EXEC} function exit
 
 # Configure SPM BIDS App entry point
-COPY run.sh spm_BIDS_App.m pipeline_participant.m narrow_participants.m pipeline_group.m /opt/spm${SPM_VERSION}/
+COPY run.sh spm_BIDS_App.m narrow_participants.m pipeline_participant.m pipeline_group.m /opt/spm${SPM_VERSION}/
 RUN chmod +x /opt/spm${SPM_VERSION}/run.sh && \
     chmod +x /opt/spm${SPM_VERSION}/spm${SPM_VERSION} && \
     chmod +x /opt/spm${SPM_VERSION}/run_spm12.sh
