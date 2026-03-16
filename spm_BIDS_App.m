@@ -223,10 +223,27 @@ if strncmp('participant',BIDS_App.level,11) && ~isempty(BIDS_App.participants)
         %-Copy participants' data
         %------------------------------------------------------------------
         for s=1:numel(BIDS_App.participants)
-            %fprintf('Temporary directory: %s\n',...
-            %    fullfile(BIDS_App.tmpdir,BIDS_App.participants{s}));
-            sts = copyfile(fullfile(BIDS_App.dir,BIDS_App.participants{s}),...
-                fullfile(BIDS_App.tmpdir,BIDS_App.participants{s}));
+            %
+            % Datasets may be managed with symlinks (e.g. datalad/git-annex)
+            %
+            % Prior to Matlab 2020, copyfile() on Linux will not dereference
+            % the symlink, which can easily break if the target is relative.
+            % To save space keeping the symblic would be the better choice, but
+            % it's much harder to determine the correct location for all
+            % platforms, so we resort to cp -L in that special case and always
+            % dereference.
+            %
+            %   https://www.mathworks.com/help/matlab/ref/copyfile.html
+            %
+            matlab_ver = str2num(erase(ver('MATLAB').('Version'), '.'));
+            if isunix && matlab_ver <= 98 % We should always be on Linux, but still
+                sts = system(sprintf('cp -rL "%s" "%s"', fullfile(BIDS_App.dir, BIDS_App.participants{s}),...
+                    fullfile(BIDS_App.tmpdir, BIDS_App.participants{s})));
+                sts = ~ sts; % exit semantic is inverted in shell
+            else
+                sts = copyfile(fullfile(BIDS_App.dir,BIDS_App.participants{s}),...
+                    fullfile(BIDS_App.tmpdir,BIDS_App.participants{s}));
+            end
             if ~sts
                 error('Data could not be temporarily copied.');
             end
